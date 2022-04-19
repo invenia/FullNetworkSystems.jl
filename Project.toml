@@ -3,7 +3,13 @@ uuid = "877b7152-b508-43dc-81fb-72341a693988"
 authors = ["Invenia Technical Computing Corporation"]
 version = "1.0.0"
 
+[deps]
+AxisKeys = "94b1ba4f-4ee9-5380-92f1-94cde586c3c5"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+
+
 [compat]
+AxisKeys = "0.2"
 julia = "1"
 
 [extras]
