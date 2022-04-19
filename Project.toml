@@ -1,0 +1,13 @@
+name = "FullNetworkSystems"
+uuid = "877b7152-b508-43dc-81fb-72341a693988"
+authors = ["Invenia Technical Computing Corporation"]
+version = "1.0.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
