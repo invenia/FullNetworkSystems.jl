@@ -67,6 +67,23 @@ struct Generators <: StaticComponent
 end
 
 """
+    gens_per_zone(gens::Generators)
+
+Returns a `Dict` with  keys of `Zone` numbers and values of generator names in that zone.
+"""
+function gens_per_zone(gens::Generators)
+    gens_per_zone = Dict{Int, Vector{Int}}()
+    for (name, zone) in zip(gens.name, gens.zone)
+        if haskey(gens_per_zone, zone)
+            push!(gens_per_zone[zone], name)
+        else
+            gens_per_zone[zone] = [name]
+        end
+    end
+    return gens_per_zone
+end
+
+"""
     Buses(name, base_voltage)
 
 Type for static bus component attributes.
@@ -100,6 +117,27 @@ struct Branches <: StaticComponent
     is_monitored::Vector{Bool}
     break_points::Vector{Tuple{Vararg{Float64}}} # variable length (0, 1, 2)
     penalties::Vector{Tuple{Vararg{Float64}}} # length corresponding to number of break points
+end
+
+"""
+    branches_by_breakpoints(branches::Branches)
+
+Returns three vectors containing of the names of branches which have 0, 1, and 2 breakpoints.
+"""
+function branches_by_breakpoints(branches::Branches)
+    zero_bp, one_bp, two_bp = String[], String[], String[]
+    for (name, breaks, mon) in zip(branches.name, branches.break_points, branches.is_monitored)
+        if mon
+            if length(breaks) == 0
+                push!(zero_bp, name)
+            elseif length(breaks) == 1
+                push!(one_bp, name)
+            else
+                push!(two_bp, name)
+            end
+        end
+    end
+    return zero_bp, one_bp, two_bp
 end
 
 """
@@ -189,4 +227,13 @@ function Base.show(io::IO, ::MIME"text/plain", system::T) where {T <: System}
         end
     end
     return nothing
+end
+
+"""
+    get_datetimes(system)
+
+Extract datetimes from a `System`.
+"""
+function get_datetimes(system::System)
+    return axiskeys(system.offer_curve, 2)
 end
