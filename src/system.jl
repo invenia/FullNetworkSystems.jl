@@ -153,11 +153,11 @@ as `KeyedArray`s of `names x datetimes`.
 abstract type System end
 
 struct SystemDA <: System
-    gens_per_bus::Dict{Int, Vector{Int}} # Are buses going to be named by string or number?
-    incs_per_bus::Dict{Int, Vector{String}}
-    decs_per_bus::Dict{Int, Vector{String}}
-    psds_per_bus::Dict{Int, Vector{String}}
-    loads_per_bus::Dict{Int, Vector{String}}
+    gens_per_bus::Dict{String, Vector{Int}}
+    incs_per_bus::Dict{String, Vector{String}}
+    decs_per_bus::Dict{String, Vector{String}}
+    psds_per_bus::Dict{String, Vector{String}}
+    loads_per_bus::Dict{String, Vector{String}}
 
     zones::Vector{Zone}
     buses::Buses
@@ -186,8 +186,8 @@ struct SystemDA <: System
 end
 
 struct SystemRT <: System
-    gens_per_bus::Dict{Int, Vector{Int}} # Are buses going to be named by string or number?
-    loads_per_bus::Dict{Int, Vector{String}}
+    gens_per_bus::Dict{String, Vector{Int}}
+    loads_per_bus::Dict{String, Vector{String}}
 
     zones::Vector{Zone}
     buses::Buses

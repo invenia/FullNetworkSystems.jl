@@ -9,7 +9,6 @@
     )
     fake_bool_ts = KeyedArray(rand(Bool, 10, 24); ids=gen_ids, datetimes=datetimes)
 
-    bus_nums = [111, 222, 333]
     branch_names = string.([1, 2, 3])
     bus_names = ["A", "B", "C"]
 
@@ -71,11 +70,11 @@
             @test two_bp == ["1"]
         end
 
-        gens_per_bus = Dict(b => rand(gen_ids, 3) for b in bus_nums)
-        incs_per_bus = Dict(b => string.(rand('A':'Z', 3)) for b in bus_nums)
-        decs_per_bus = Dict(b => string.(rand('A':'Z', 3)) for b in bus_nums)
-        psds_per_bus = Dict(b => string.(rand('A':'Z', 3)) for b in bus_nums)
-        loads_per_bus = Dict(b => string.(rand('A':'Z', 3)) for b in bus_nums)
+        gens_per_bus = Dict(b => rand(gen_ids, 3) for b in bus_names)
+        incs_per_bus = Dict(b => string.(rand('A':'Z', 3)) for b in bus_names)
+        decs_per_bus = Dict(b => string.(rand('A':'Z', 3)) for b in bus_names)
+        psds_per_bus = Dict(b => string.(rand('A':'Z', 3)) for b in bus_names)
+        loads_per_bus = Dict(b => string.(rand('A':'Z', 3)) for b in bus_names)
 
         LODF = Dict(
             "CONTIN_1" => KeyedArray(rand(3, 1);
