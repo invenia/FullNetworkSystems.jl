@@ -62,8 +62,8 @@ struct Generators <: StaticComponent
     min_downtime::Vector{Float64}
     ramp_up::Vector{Float64}
     ramp_down::Vector{Float64}
-    initial_gen::Vector{Float64} # this one changes in RT with _update_system_generation - but is that necessary - it could be a mutable time series
-    technology::Vector{Symbol} # or we could define some types for this if we like
+    initial_gen::Vector{Float64} # this one changes in RT with _update_system_generation - but is that necessary - could be a mutable time series?
+    technology::Vector{Symbol}
 end
 
 """
@@ -141,7 +141,7 @@ function branches_by_breakpoints(branches::Branches)
 end
 
 """
-    System
+    SystemDA
 
 The big type that represents the whole power system.
 
@@ -150,14 +150,16 @@ System wide static attributes: zones, buses, generators, branches, LODF and PTDF
 Time series data: all the time series associated with generators, loads and bids.  All stored
 as `KeyedArray`s of `names x datetimes`.
 """
-struct System
+abstract type System end
+
+struct SystemDA <: System
     gens_per_bus::Dict{Int, Vector{Int}} # Are buses going to be named by string or number?
     incs_per_bus::Dict{Int, Vector{String}}
     decs_per_bus::Dict{Int, Vector{String}}
     psds_per_bus::Dict{Int, Vector{String}}
     loads_per_bus::Dict{Int, Vector{String}}
 
-    zones::Vector{Zone} # zones contain the time series data for services
+    zones::Vector{Zone}
     buses::Buses
     generators::Generators
     branches::Branches
@@ -178,16 +180,16 @@ struct System
     loads::KeyedArray{Float64}
 
     # Virtuals/PSD time series
-    increment_bids::KeyedArray{Vector{Tuple{Float64, Float64}}} # in DA but not in RT
+    increment_bids::KeyedArray{Vector{Tuple{Float64, Float64}}}
     decrement_bids::KeyedArray{Vector{Tuple{Float64, Float64}}}
     price_sensitive_demand::KeyedArray{Vector{Tuple{Float64, Float64}}}
 end
 
-struct SystemRT
+struct SystemRT <: System
     gens_per_bus::Dict{Int, Vector{Int}} # Are buses going to be named by string or number?
     loads_per_bus::Dict{Int, Vector{String}}
 
-    zones::Vector{Zone} # zones contain the time series data for services
+    zones::Vector{Zone}
     buses::Buses
     generators::Generators
     branches::Branches
@@ -196,8 +198,8 @@ struct SystemRT
 
     # Generator related time series
     offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}}
-    status::KeyedArray{Bool} # used in RT but not in DA
-    status_regulation::KeyedArray{Bool} # do we need this or is it contained in ancillary_services?
+    status::KeyedArray{Bool}
+    status_regulation::KeyedArray{Bool}
     regulation_min::KeyedArray{Float64}
     regulation_max::KeyedArray{Float64}
     pmin::KeyedArray{Float64}
@@ -222,7 +224,7 @@ function Base.show(io::IO, ::MIME"text/plain", system::T) where {T <: System}
     for (name, type) in zip(fieldnames(T), fieldtypes(T))
         if name == last(fieldnames(T))
             print(io, "$name")
-        elseif type <: KeyedArray
+        elseif type <: KeyedArray && name != :PTDF
             print(io, "$name, ")
         end
     end

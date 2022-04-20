@@ -83,7 +83,7 @@
         )
         PTDF = KeyedArray(rand(3, 3); row=bus_names, col=bus_names)
 
-        system = System(
+        da_system = SystemDA(
             gens_per_bus,
             incs_per_bus,
             decs_per_bus,
@@ -109,7 +109,30 @@
             fake_offer_ts
         )
 
-        @test system isa System
-        @test get_datetimes(system) == datetimes
+        @test da_system isa SystemDA
+        @test get_datetimes(da_system) == datetimes
+
+        rt_system = SystemRT(
+            gens_per_bus,
+            loads_per_bus,
+            [zone1, zone2, zone_market],
+            buses,
+            gens,
+            branches,
+            LODF,
+            PTDF,
+            fake_offer_ts,
+            fake_bool_ts,
+            fake_bool_ts,
+            fake_gen_ts,
+            fake_gen_ts,
+            fake_gen_ts,
+            fake_gen_ts,
+            sts,
+            fake_gen_ts
+        )
+
+        @test rt_system isa SystemRT
+        @test get_datetimes(rt_system) == datetimes
     end
 end
