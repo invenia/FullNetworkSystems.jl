@@ -30,7 +30,7 @@ end
 abstract type StaticComponent end
 
 Base.length(components::StaticComponent) = length(getfield(components, 1))
-# define iterators interface? or Tables interface?
+# define interfaces? Iterator? Table?
 
 """
     Generators(
@@ -141,17 +141,51 @@ function branches_by_breakpoints(branches::Branches)
 end
 
 """
-    SystemDA
+    System
 
-The big type that represents the whole power system.
+The abstract type for representing the whole power system including topology, static
+components and their attributes, and time series data.
 
-Topology section: `Dict`s linking generators, loads, and bids to buses.
-System wide static attributes: zones, buses, generators, branches, LODF and PTDF.
+Topology: `Dict`s linking generators, loads, and bids (if present) to buses.
+System wide static components and grid matrices: zones, buses, generators, branches, LODF and PTDF.
 Time series data: all the time series associated with generators, loads and bids.  All stored
-as `KeyedArray`s of `names x datetimes`.
+as `KeyedArray`s of `ids x datetimes`.
 """
 abstract type System end
 
+"""
+    struct SystemDA <: System
+
+Subtype of a `System` for modelling the day-ahead market.
+
+Fields:
+ - Topology
+     - `gens_per_bus::Dict{String, Vector{Int}}`
+     - `incs_per_bus::Dict{String, Vector{String}}`
+     - `decs_per_bus::Dict{String, Vector{String}}`
+     - `psds_per_bus::Dict{String, Vector{String}}`
+     - `loads_per_bus::Dict{String, Vector{String}}`
+ - Static components
+     - `zones::Vector{Zone}`
+     - `buses::Buses`
+     - `generators::Generators`
+     - `branches::Branches`
+     - `LODF::Dict{String, KeyedArray}`
+     - `PTDF::KeyedArray`
+ - Time series
+     - `offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}}`
+     - `availability::KeyedArray{Bool}`
+     - `must_run::KeyedArray{Bool}`
+     - `regulation_min::KeyedArray{Float64}`
+     - `regulation_max::KeyedArray{Float64}`
+     - `pmin::KeyedArray{Float64}`
+     - `pmax::KeyedArray{Float64}`
+     - `ancillary_services::ServicesTimeSeries`
+     - `loads::KeyedArray{Float64}`
+     - `increment_bids::KeyedArray{Vector{Tuple{Float64, Float64}}}`
+     - `decrement_bids::KeyedArray{Vector{Tuple{Float64, Float64}}}`
+     - `price_sensitive_demand::KeyedArray{Vector{Tuple{Float64, Float64}}}`
+"""
 struct SystemDA <: System
     gens_per_bus::Dict{String, Vector{Int}}
     incs_per_bus::Dict{String, Vector{String}}
@@ -185,6 +219,33 @@ struct SystemDA <: System
     price_sensitive_demand::KeyedArray{Vector{Tuple{Float64, Float64}}}
 end
 
+"""
+    struct SystemRT <: System
+
+Subtype of a `System` for modelling the real-time market.
+
+Fields:
+ - Topology
+     - `gens_per_bus::Dict{String, Vector{Int}}`
+     - `loads_per_bus::Dict{String, Vector{String}}`
+ - Static components
+     - `zones::Vector{Zone}`
+     - `buses::Buses`
+     - `generators::Generators`
+     - `branches::Branches`
+     - `LODF::Dict{String, KeyedArray}`
+     - `PTDF::KeyedArray`
+ - Time series
+     - `offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}}`
+     - `status::KeyedArray{Bool}`
+     - `status_regulation::KeyedArray{Bool}`
+     - `regulation_min::KeyedArray{Float64}`
+     - `regulation_max::KeyedArray{Float64}`
+     - `pmin::KeyedArray{Float64}`
+     - `pmax::KeyedArray{Float64}`
+     - `ancillary_services::ServicesTimeSeries`
+     - `loads::KeyedArray{Float64}`
+"""
 struct SystemRT <: System
     gens_per_bus::Dict{String, Vector{Int}}
     loads_per_bus::Dict{String, Vector{String}}
