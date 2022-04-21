@@ -8,7 +8,7 @@ struct ServicesTimeSeries
     reg::KeyedArray{Float64}
     spin::KeyedArray{Float64}
     sup_on::KeyedArray{Float64}
-    sup_off::KeyedArray{Float64}
+    sup_off::KeyedArray{Float64, 2}
 end
 
 """
@@ -198,7 +198,7 @@ struct SystemDA <: System
     generators::Generators
     branches::Branches
     LODF::Dict{String, KeyedArray}
-    PTDF::KeyedArray
+    PTDF::KeyedArray{Float32, 2}
 
     # Generator related time series
     offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}}
@@ -277,7 +277,7 @@ function Base.show(io::IO, ::MIME"text/plain", system::T) where {T <: System}
     z = length(system.zones) - 1
     print(io, " with $z Zones")
     for c in [:buses, :generators, :branches]
-        l = length(getproperty(getproperty(system, c), :name))
+        l = length(getproperty(system, c))
         print(io, ", $l $(c)")
     end
     print(io, "\n")
