@@ -1,26 +1,6 @@
 """
     $TYPEDEF
 
-Type defining ancillary services time series.  Fields are `KeyedArray` where the keys are
-`generator names x datetimes`.  Dollar symbol \$.
-
-Fields:
-$TYPEDFIELDS
-"""
-struct ServicesTimeSeries
-    "Regulation offer prices (\$ /MW)"
-    reg::KeyedArray{Float64, 2}
-    "Spinning offer prices (\$ /MW)"
-    spin::KeyedArray{Float64, 2}
-    "Supplemental on offer prices (\$ /MW)"
-    sup_on::KeyedArray{Float64, 2}
-    "Supplemental off offer prices (\$ /MW)"
-    sup_off::KeyedArray{Float64, 2}
-end
-
-"""
-    $TYPEDEF
-
 Type defining a market zone.  The `Zone` is identified by a number.  The other fields contain
 the service requirements for the zone.
 
@@ -229,8 +209,14 @@ struct SystemDA <: System
     pmin::KeyedArray{Float64, 2}
     "Generator maximum output (MWs)"
     pmax::KeyedArray{Float64, 2}
-    "Time series data for ancillary services provided by generators"
-    ancillary_services::ServicesTimeSeries
+    "Ancillary services regulation offer prices (\$ /MW)"
+    asm_regulation::KeyedArray{Float64, 2}
+    "Ancillary services spinning offer prices (\$ /MW)"
+    asm_spin::KeyedArray{Float64, 2}
+    "Ancillary services supplemental on offer prices (\$ /MW)"
+    asm_sup_on::KeyedArray{Float64, 2}
+    "Ancillary services supplemental off offer prices (\$ /MW)"
+    asm_sup_off::KeyedArray{Float64, 2}
 
     # Load time series
     "Load time series data. `KeyedArray` where the axis keys are `load ids x datetimes`"
@@ -291,8 +277,14 @@ struct SystemRT <: System
     pmin::KeyedArray{Float64, 2}
     "Generator maximum output (MWs)"
     pmax::KeyedArray{Float64, 2}
-    "Time series data for ancillary services provided by generators"
-    ancillary_services::ServicesTimeSeries
+    "Ancillary services regulation offer prices (\$ /MW)"
+    asm_regulation::KeyedArray{Float64, 2}
+    "Ancillary services spinning offer prices (\$ /MW)"
+    asm_spin::KeyedArray{Float64, 2}
+    "Ancillary services supplemental on offer prices (\$ /MW)"
+    asm_sup_on::KeyedArray{Float64, 2}
+    "Ancillary services supplemental off offer prices (\$ /MW)"
+    asm_sup_off::KeyedArray{Float64, 2}
 
     # Load time series
     "Load time series data. `KeyedArray` where the axis keys are `load ids x datetimes`"

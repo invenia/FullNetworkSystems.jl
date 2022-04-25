@@ -13,9 +13,6 @@
     bus_names = ["A", "B", "C"]
 
     @testset "System" begin
-        sts = ServicesTimeSeries(fake_gen_ts, fake_gen_ts, fake_gen_ts, fake_gen_ts)
-        @test sts isa ServicesTimeSeries
-
         zone1 = Zone(1, 1.0, 1.0, 1.0, 1.0)
         zone2 = Zone(1, 4.0, 2.0, 4.0, 2.0)
         zone_market = Zone(-9999, 3.0, 3.0, 3.0, 3.0)
@@ -101,7 +98,10 @@
             fake_gen_ts,
             fake_gen_ts,
             fake_gen_ts,
-            sts,
+            fake_gen_ts,
+            fake_gen_ts,
+            fake_gen_ts,
+            fake_gen_ts,
             fake_gen_ts,
             fake_offer_ts,
             fake_offer_ts,
@@ -127,7 +127,10 @@
             fake_gen_ts,
             fake_gen_ts,
             fake_gen_ts,
-            sts,
+            fake_gen_ts,
+            fake_gen_ts,
+            fake_gen_ts,
+            fake_gen_ts,
             fake_gen_ts
         )
 
