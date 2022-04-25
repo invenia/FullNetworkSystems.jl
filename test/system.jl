@@ -78,9 +78,9 @@
 
         LODF = Dict(
             "CONTIN_1" => KeyedArray(rand(3, 1);
-            buses=bus_names, branch=[first(branch_names)])
+            branches=branch_names, branch=[first(branch_names)])
         )
-        PTDF = KeyedArray(rand(3, 3); row=bus_names, col=bus_names)
+        PTDF = KeyedArray(rand(3, 3); row=branch_names, col=bus_names)
 
         da_system = SystemDA(
             gens_per_bus,

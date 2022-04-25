@@ -1,27 +1,42 @@
 """
-    ServicesTimeSeries(reg, spin, sup_on, sup_off)
+    $TYPEDEF
 
-Type defining services time series.  Fields are KeyedArray where the keys are generator names
-x datetimes.  Only generators that provide each service are included in the array.
+Type defining ancillary services time series.  Fields are `KeyedArray` where the keys are
+`generator names x datetimes`.  Dollar symbol \$.
+
+Fields:
+$TYPEDFIELDS
 """
 struct ServicesTimeSeries
-    reg::KeyedArray{Float64}
-    spin::KeyedArray{Float64}
-    sup_on::KeyedArray{Float64}
+    "Regulation offer prices (\$ /MW)"
+    reg::KeyedArray{Float64, 2}
+    "Spinning offer prices (\$ /MW)"
+    spin::KeyedArray{Float64, 2}
+    "Supplemental on offer prices (\$ /MW)"
+    sup_on::KeyedArray{Float64, 2}
+    "Supplemental off offer prices (\$ /MW)"
     sup_off::KeyedArray{Float64, 2}
 end
 
 """
-    Zone(number, reg, spin, sup_on, sup_off)
+    $TYPEDEF
 
 Type defining a market zone.  The `Zone` is identified by a number.  The other fields contain
 the service requirements for the zone.
+
+Fields:
+$TYPEDFIELDS
 """
 struct Zone
+    "Zone number"
     number::Int64
+    "Zonal regulation requirement (MWs)"
     reg::Float64
+    "Zonal spinning requirement (MWs)"
     spin::Float64
+    "Zonal supplemental on requirement (MWs)"
     sup_on::Float64
+    "Zonal supplemental off requirement (MWs)"
     sup_off::Float64
 end
 
@@ -33,36 +48,38 @@ Base.length(components::StaticComponent) = length(getfield(components, 1))
 # define interfaces? Iterator? Table?
 
 """
-    Generators(
-        name::Vector{Int}
-        zone::Vector{Int}
-        startup_cost::Vector{Float64}
-        shutdown_cost::Vector{Float64}
-        no_load_cost::Vector{Float64}
-        time_at_status::Vector{Float64}
-        min_uptime::Vector{Float64}
-        min_downtime::Vector{Float64}
-        ramp_up::Vector{Float64}
-        ramp_down::Vector{Float64}
-        initial_gen::Vector{Float64}
-        technology::Vector{Symbol}
-    )
+    $TYPEDEF
 
 Type for static generator component attributes (i.e. things that describe a generator that
 are not time series data).
+
+Fields:
+$TYPEDFIELDS
 """
 struct Generators <: StaticComponent
+    "Generator ids/unit codes"
     name::Vector{Int}
+    "Number of the zone the generator is located in"
     zone::Vector{Int}
+    "Cost of turning on the generator (\$)"
     startup_cost::Vector{Float64}
+    "Cost of turning off the generator (\$)"
     shutdown_cost::Vector{Float64}
+    "Cost of the generator being on but not producing any MW (\$ /hour)"
     no_load_cost::Vector{Float64}
-    time_at_status::Vector{Float64}
+    "Hours each generator has been at its current status at the start of the day"
+    hours_at_status::Vector{Float64}
+    "Minimum time a generator has to be committed for (hours)"
     min_uptime::Vector{Float64}
+    "Minimum time a generator has to be off for (hours)"
     min_downtime::Vector{Float64}
+    "Rate at which a generator can increase generation (MW/minute)"
     ramp_up::Vector{Float64}
+    "Rate at which a generator can decrease generation (MW/minute)"
     ramp_down::Vector{Float64}
+    "Generation of generators at the start of the day (MWs)"
     initial_gen::Vector{Float64} # this one changes in RT with _update_system_generation - but is that necessary - could be a mutable time series?
+    "Symbol describing the technology of a generator"
     technology::Vector{Symbol}
 end
 
@@ -84,38 +101,45 @@ function gens_per_zone(gens::Generators)
 end
 
 """
-    Buses(name, base_voltage)
+    $TYPEDEF
 
 Type for static bus component attributes.
+
+Fields:
+$TYPEDFIELDS
 """
 struct Buses <: StaticComponent
-    name::Vector{String}
+    "Bus name"
+    name::Vector{InlineString15}
+    "Base volatge (kV)"
     base_voltage::Vector{Float64}
 end
 
 """
-    Branches(
-        name::Vector{String}
-        to_bus::Vector{String}
-        from_bus::Vector{String}
-        rate_a::Vector{Float64}
-        rate_b::Vector{Float64}
-        is_monitored::Vector{Bool}
-        break_points::Vector{Tuple{Vararg{Float64}}}
-        penalties::Vector{Tuple{Vararg{Float64}}}
-    )
+    $TYPEDEF
 
 Type for static branch component attributes.  Branches may have between 0 and 2 break points
 which is why the `break_points` and `penalties` fields contain variable length `Tuple`s.
+
+Fields:
+$TYPEDFIELDS
 """
 struct Branches <: StaticComponent
-    name::Vector{String}
-    to_bus::Vector{String}
-    from_bus::Vector{String}
+    "Branch long name"
+    name::Vector{InlineString31}
+    "Name of the bus the branch goes to"
+    to_bus::Vector{InlineString15}
+    "Name of the bus the branche goes from"
+    from_bus::Vector{InlineString15}
+    "Power flow limit for the base case (MVA)"
     rate_a::Vector{Float64}
+    "Power flow limit for contingency scenario (MVA)"
     rate_b::Vector{Float64}
+    "Boolean defining whether the branch is monitored"
     is_monitored::Vector{Bool}
+    "Break points of the branch. Branches can have 0, 1, or 2 break points"
     break_points::Vector{Tuple{Vararg{Float64}}} # variable length (0, 1, 2)
+    "Price penalties for each of the break points of the branch (\$)"
     penalties::Vector{Tuple{Vararg{Float64}}} # length corresponding to number of break points
 end
 
@@ -154,121 +178,125 @@ as `KeyedArray`s of `ids x datetimes`.
 abstract type System end
 
 """
-    struct SystemDA <: System
+    $TYPEDEF
 
 Subtype of a `System` for modelling the day-ahead market.
 
 Fields:
- - Topology
-     - `gens_per_bus::Dict{String, Vector{Int}}`
-     - `incs_per_bus::Dict{String, Vector{String}}`
-     - `decs_per_bus::Dict{String, Vector{String}}`
-     - `psds_per_bus::Dict{String, Vector{String}}`
-     - `loads_per_bus::Dict{String, Vector{String}}`
- - Static components
-     - `zones::Vector{Zone}`
-     - `buses::Buses`
-     - `generators::Generators`
-     - `branches::Branches`
-     - `LODF::Dict{String, KeyedArray}`
-     - `PTDF::KeyedArray`
- - Time series
-     - `offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}}`
-     - `availability::KeyedArray{Bool}`
-     - `must_run::KeyedArray{Bool}`
-     - `regulation_min::KeyedArray{Float64}`
-     - `regulation_max::KeyedArray{Float64}`
-     - `pmin::KeyedArray{Float64}`
-     - `pmax::KeyedArray{Float64}`
-     - `ancillary_services::ServicesTimeSeries`
-     - `loads::KeyedArray{Float64}`
-     - `increment_bids::KeyedArray{Vector{Tuple{Float64, Float64}}}`
-     - `decrement_bids::KeyedArray{Vector{Tuple{Float64, Float64}}}`
-     - `price_sensitive_demand::KeyedArray{Vector{Tuple{Float64, Float64}}}`
+$TYPEDFIELDS
 """
 struct SystemDA <: System
-    gens_per_bus::Dict{String, Vector{Int}}
-    incs_per_bus::Dict{String, Vector{String}}
-    decs_per_bus::Dict{String, Vector{String}}
-    psds_per_bus::Dict{String, Vector{String}}
-    loads_per_bus::Dict{String, Vector{String}}
+    "`Dict` where the keys are bus names and the values are generator ids at that bus"
+    gens_per_bus::Dict{InlineString15, Vector{Int}}
+    "`Dict` where the keys are bus names and the values are increment bid ids at that bus"
+    incs_per_bus::Dict{InlineString15, Vector{String}}
+    "`Dict` where the keys are bus names and the values are decrement bid ids at that bus"
+    decs_per_bus::Dict{InlineString15, Vector{String}}
+    "`Dict` where the keys are bus names and the values are price sensitive demand ids at that bus"
+    psds_per_bus::Dict{InlineString15, Vector{String}}
+    "`Dict` where the keys are bus names and the values are load ids at that bus"
+    loads_per_bus::Dict{InlineString15, Vector{String}}
 
+    "Zones in the `System`, which will also include a `Zone` entry for the market wide zone"
     zones::Vector{Zone}
     buses::Buses
     generators::Generators
     branches::Branches
-    LODF::Dict{String, KeyedArray}
-    PTDF::KeyedArray{Float32, 2}
+    """
+    The line outage distribution factor matrix of the system for a set of contingencies given
+    by the keys of the `Dict`. Each entry is a `KeyedArray` with axis keys
+    `branch names x branch on outage`
+    """
+    LODF::Dict{String, KeyedArray{Float64, 2}}
+    """
+    Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
+    `branch names x bus names`
+    """
+    PTDF::KeyedArray{Float64, 2}
 
     # Generator related time series
-    offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}}
-    availability::KeyedArray{Bool}
-    must_run::KeyedArray{Bool}
-    regulation_min::KeyedArray{Float64}
-    regulation_max::KeyedArray{Float64}
-    pmin::KeyedArray{Float64}
-    pmax::KeyedArray{Float64}
+    "Generator offer curves. `KeyedArray` where the axis keys are `generator names x datetimes`"
+    offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    "Generator availability"
+    availability::KeyedArray{Bool, 2}
+    "Generator must run flag indicating that the generator has to be committed at that hour"
+    must_run::KeyedArray{Bool, 2}
+    "Generator minimum output in the ancillary services market (MWs)"
+    regulation_min::KeyedArray{Float64, 2}
+    "Generator maximum output in the ancillary services market (MWs)"
+    regulation_max::KeyedArray{Float64, 2}
+    "Generator minimum output (MWs)"
+    pmin::KeyedArray{Float64, 2}
+    "Generator maximum output (MWs)"
+    pmax::KeyedArray{Float64, 2}
+    "Time series data for ancillary services provided by generators"
     ancillary_services::ServicesTimeSeries
 
     # Load time series
-    loads::KeyedArray{Float64}
+    "Load time series data. `KeyedArray` where the axis keys are `load ids x datetimes`"
+    loads::KeyedArray{Float64, 2}
 
     # Virtuals/PSD time series
-    increment_bids::KeyedArray{Vector{Tuple{Float64, Float64}}}
-    decrement_bids::KeyedArray{Vector{Tuple{Float64, Float64}}}
-    price_sensitive_demand::KeyedArray{Vector{Tuple{Float64, Float64}}}
+    "Increment bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
+    increment_bids::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    "Decrement bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
+    decrement_bids::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    "Price sensitive demand time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
+    price_sensitive_demand::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
 end
 
 """
-    struct SystemRT <: System
+    $TYPEDEF
 
 Subtype of a `System` for modelling the real-time market.
 
 Fields:
- - Topology
-     - `gens_per_bus::Dict{String, Vector{Int}}`
-     - `loads_per_bus::Dict{String, Vector{String}}`
- - Static components
-     - `zones::Vector{Zone}`
-     - `buses::Buses`
-     - `generators::Generators`
-     - `branches::Branches`
-     - `LODF::Dict{String, KeyedArray}`
-     - `PTDF::KeyedArray`
- - Time series
-     - `offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}}`
-     - `status::KeyedArray{Bool}`
-     - `status_regulation::KeyedArray{Bool}`
-     - `regulation_min::KeyedArray{Float64}`
-     - `regulation_max::KeyedArray{Float64}`
-     - `pmin::KeyedArray{Float64}`
-     - `pmax::KeyedArray{Float64}`
-     - `ancillary_services::ServicesTimeSeries`
-     - `loads::KeyedArray{Float64}`
+$TYPEDFIELDS
 """
 struct SystemRT <: System
-    gens_per_bus::Dict{String, Vector{Int}}
-    loads_per_bus::Dict{String, Vector{String}}
+    "`Dict` where the keys are bus names and the values are generator ids at that bus"
+    gens_per_bus::Dict{InlineString15, Vector{Int}}
+    "`Dict` where the keys are bus names and the values are load ids at that bus"
+    loads_per_bus::Dict{InlineString15, Vector{String}}
 
+    "Zones in the `System`, which will also include a `Zone` entry for the market wide zone"
     zones::Vector{Zone}
     buses::Buses
     generators::Generators
     branches::Branches
-    LODF::Dict{String, KeyedArray}
-    PTDF::KeyedArray
+    """
+    The line outage distribution factor matrix of the system for a set of contingencies given
+    by the keys of the `Dict`. Each entry is a `KeyedArray` with axis keys
+    `branch names x branch on outage`
+    """
+    LODF::Dict{String, KeyedArray{Float64, 2}}
+    """
+    Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
+    `branch names x bus names`
+    """
+    PTDF::KeyedArray{Float64, 2}
 
     # Generator related time series
-    offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}}
-    status::KeyedArray{Bool}
-    status_regulation::KeyedArray{Bool}
-    regulation_min::KeyedArray{Float64}
-    regulation_max::KeyedArray{Float64}
-    pmin::KeyedArray{Float64}
-    pmax::KeyedArray{Float64}
+    "Generator offer curves. `KeyedArray` where the axis keys are `generator names x datetimes`"
+    offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    "Generator status indicated by a `Bool`"
+    status::KeyedArray{Bool, 2}
+    "Generator ancillary service status indicated by a `Bool`"
+    status_regulation::KeyedArray{Bool, 2}
+    "Generator minimum output in the ancillary services market (MWs)"
+    regulation_min::KeyedArray{Float64, 2}
+    "Generator maximum output in the ancillary services market (MWs)"
+    regulation_max::KeyedArray{Float64, 2}
+    "Generator minimum output (MWs)"
+    pmin::KeyedArray{Float64, 2}
+    "Generator maximum output (MWs)"
+    pmax::KeyedArray{Float64, 2}
+    "Time series data for ancillary services provided by generators"
     ancillary_services::ServicesTimeSeries
 
     # Load time series
-    loads::KeyedArray{Float64}
+    "Load time series data. `KeyedArray` where the axis keys are `load ids x datetimes`"
+    loads::KeyedArray{Float64, 2}
 end
 
 function Base.show(io::IO, ::MIME"text/plain", system::T) where {T <: System}
@@ -298,5 +326,6 @@ end
 Extract datetimes from a `System`.
 """
 function get_datetimes(system::System)
+    # use offer_curve axiskeys because all subtypes of System have offer_curve
     return axiskeys(system.offer_curve, 2)
 end

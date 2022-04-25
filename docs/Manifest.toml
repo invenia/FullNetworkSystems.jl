@@ -120,7 +120,7 @@ uuid = "da5c29d0-fa7d-589e-88eb-ea29b0a81949"
 version = "1.5.0"
 
 [[deps.FullNetworkSystems]]
-deps = ["AxisKeys", "Dates"]
+deps = ["AxisKeys", "Dates", "DocStringExtensions", "InlineStrings"]
 path = ".."
 uuid = "877b7152-b508-43dc-81fb-72341a693988"
 version = "1.0.0"
@@ -135,6 +135,12 @@ version = "0.2.2"
 git-tree-sha1 = "debdd00ffef04665ccbb3e150747a77560e8fad1"
 uuid = "615f187c-cbe4-4ef1-ba3b-2fcf58d6d173"
 version = "0.1.1"
+
+[[deps.InlineStrings]]
+deps = ["Parsers"]
+git-tree-sha1 = "61feba885fac3a407465726d0c330b3055df897f"
+uuid = "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
+version = "1.1.2"
 
 [[deps.InteractiveUtils]]
 deps = ["Markdown"]
