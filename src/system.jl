@@ -22,126 +22,82 @@ end
 
 ###### Static Component Types ######
 
-abstract type StaticComponent end
-
-Base.length(components::StaticComponent) = length(getfield(components, 1))
-# define interfaces? Iterator? Table?
-
 """
     $TYPEDEF
 
-Type for static generator component attributes (i.e. things that describe a generator that
-are not time series data).
+Type for static generator attribute (i.e. things that describe a generator that are not time
+series data).
 
 Fields:
 $TYPEDFIELDS
 """
-struct Generators <: StaticComponent
-    "Generator ids/unit codes"
-    name::Vector{Int}
+struct Generator
+    "Generator id/unit code"
+    unit_code::Int
     "Number of the zone the generator is located in"
-    zone::Vector{Int}
+    zone::Int
     "Cost of turning on the generator (\$)"
-    startup_cost::Vector{Float64}
+    startup_cost::Float64
     "Cost of turning off the generator (\$)"
-    shutdown_cost::Vector{Float64}
+    shutdown_cost::Float64
     "Cost of the generator being on but not producing any MW (\$ /hour)"
-    no_load_cost::Vector{Float64}
-    "Hours each generator has been at its current status at the start of the day"
-    hours_at_status::Vector{Float64}
-    "Minimum time a generator has to be committed for (hours)"
-    min_uptime::Vector{Float64}
-    "Minimum time a generator has to be off for (hours)"
-    min_downtime::Vector{Float64}
-    "Rate at which a generator can increase generation (MW/minute)"
-    ramp_up::Vector{Float64}
-    "Rate at which a generator can decrease generation (MW/minute)"
-    ramp_down::Vector{Float64}
-    "Generation of generators at the start of the day (MWs)"
-    initial_gen::Vector{Float64} # this one changes in RT with _update_system_generation - but is that necessary - could be a mutable time series?
-    "Symbol describing the technology of a generator"
-    technology::Vector{Symbol}
-end
-
-"""
-    gens_per_zone(gens::Generators)
-
-Returns a `Dict` with  keys of `Zone` numbers and values of generator names in that zone.
-"""
-function gens_per_zone(gens::Generators)
-    gens_per_zone = Dict{Int, Vector{Int}}()
-    for (name, zone) in zip(gens.name, gens.zone)
-        if haskey(gens_per_zone, zone)
-            push!(gens_per_zone[zone], name)
-        else
-            gens_per_zone[zone] = [name]
-        end
-    end
-    return gens_per_zone
+    no_load_cost::Float64
+    "Minimum time the generator has to be committed for (hours)"
+    min_uptime::Float64
+    "Minimum time the generator has to be off for (hours)"
+    min_downtime::Float64
+    "Rate at which the generator can increase generation (MW/minute)"
+    ramp_up::Float64
+    "Rate at which the generator can decrease generation (MW/minute)"
+    ramp_down::Float64
+    "Symbol describing the technology of the generator"
+    technology::Symbol
 end
 
 """
     $TYPEDEF
 
-Type for static bus component attributes.
+Type for static bus attributes.
 
 Fields:
 $TYPEDFIELDS
 """
-struct Buses <: StaticComponent
+struct Bus
     "Bus name"
-    name::Vector{InlineString15}
-    "Base volatge (kV)"
-    base_voltage::Vector{Float64}
+    name::InlineString15
+    "Base voltage (kV)"
+    base_voltage::Float64
 end
 
 """
     $TYPEDEF
 
-Type for static branch component attributes.  Branches may have between 0 and 2 break points
+Type for static branch attributes.  Branches may have between 0 and 2 break points
 which is why the `break_points` and `penalties` fields contain variable length `Tuple`s.
 
 Fields:
 $TYPEDFIELDS
 """
-struct Branches <: StaticComponent
+struct Branch
     "Branch long name"
-    name::Vector{InlineString31}
+    name::InlineString31
     "Name of the bus the branch goes to"
-    to_bus::Vector{InlineString15}
-    "Name of the bus the branche goes from"
-    from_bus::Vector{InlineString15}
+    to_bus::InlineString15
+    "Name of the bus the branch goes from"
+    from_bus::InlineString15
     "Power flow limit for the base case (MVA)"
-    rate_a::Vector{Float64}
+    rate_a::Float64
     "Power flow limit for contingency scenario (MVA)"
-    rate_b::Vector{Float64}
+    rate_b::Float64
     "Boolean defining whether the branch is monitored"
-    is_monitored::Vector{Bool}
-    "Break points of the branch. Branches can have 0, 1, or 2 break points"
-    break_points::Vector{Tuple{Vararg{Float64}}} # variable length (0, 1, 2)
+    is_monitored::Bool
+    """
+    Break points of the branch. Branches can have 0, 1, or 2 break points. Zeros indicate
+    no break point
+    """
+    break_points::Tuple{Float64, Float64}
     "Price penalties for each of the break points of the branch (\$)"
-    penalties::Vector{Tuple{Vararg{Float64}}} # length corresponding to number of break points
-end
-
-"""
-    branches_by_breakpoints(branches::Branches)
-
-Returns three vectors containing of the names of branches which have 0, 1, and 2 breakpoints.
-"""
-function branches_by_breakpoints(branches::Branches)
-    zero_bp, one_bp, two_bp = String[], String[], String[]
-    for (name, breaks, mon) in zip(branches.name, branches.break_points, branches.is_monitored)
-        if mon
-            if length(breaks) == 0
-                push!(zero_bp, name)
-            elseif length(breaks) == 1
-                push!(one_bp, name)
-            else
-                push!(two_bp, name)
-            end
-        end
-    end
-    return zero_bp, one_bp, two_bp
+    penalties::Tuple{Float64, Float64}
 end
 
 """
@@ -178,10 +134,13 @@ struct SystemDA <: System
     loads_per_bus::Dict{InlineString15, Vector{String}}
 
     "Zones in the `System`, which will also include a `Zone` entry for the market wide zone"
-    zones::Vector{Zone}
-    buses::Buses
-    generators::Generators
-    branches::Branches
+    zones::Dictionary{Int, Zone}
+    "Buses in the `System` indexed by bus name"
+    buses::Dictionary{InlineString15, Bus}
+    "Generators in the `System` indexed by unit code"
+    generators::Dictionary{Int, Generator}
+    "Branches in the `System` indexed by branch name"
+    branches::Dictionary{InlineString31, Branch}
     """
     The line outage distribution factor matrix of the system for a set of contingencies given
     by the keys of the `Dict`. Each entry is a `KeyedArray` with axis keys
@@ -195,6 +154,10 @@ struct SystemDA <: System
     PTDF::KeyedArray{Float64, 2}
 
     # Generator related time series
+    "Generation of the generators at the start of the day (MWs)"
+    initial_generation::KeyedArray{Float64, 1}
+    "Hours each generator has been at its current status at the start of the day"
+    hours_at_status::KeyedArray{Float64, 1}
     "Generator offer curves. `KeyedArray` where the axis keys are `generator names x datetimes`"
     offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
     "Generator availability"
@@ -246,10 +209,13 @@ struct SystemRT <: System
     loads_per_bus::Dict{InlineString15, Vector{String}}
 
     "Zones in the `System`, which will also include a `Zone` entry for the market wide zone"
-    zones::Vector{Zone}
-    buses::Buses
-    generators::Generators
-    branches::Branches
+    zones::Dictionary{Int, Zone}
+    "Buses in the `System` indexed by bus name"
+    buses::Dictionary{InlineString15, Bus}
+    "Generators in the `System` indexed by unit code"
+    generators::Dictionary{Int, Generator}
+    "Branches in the `System` indexed by branch name"
+    branches::Dictionary{InlineString31, Branch}
     """
     The line outage distribution factor matrix of the system for a set of contingencies given
     by the keys of the `Dict`. Each entry is a `KeyedArray` with axis keys
@@ -263,6 +229,8 @@ struct SystemRT <: System
     PTDF::KeyedArray{Float64, 2}
 
     # Generator related time series
+    "Generation of the generator at the start of the time period (MWs)"
+    initial_generation::KeyedArray{Float64, 1}
     "Generator offer curves. `KeyedArray` where the axis keys are `generator names x datetimes`"
     offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
     "Generator status indicated by a `Bool`"
@@ -320,4 +288,42 @@ Extract datetimes from a `System`.
 function get_datetimes(system::System)
     # use offer_curve axiskeys because all subtypes of System have offer_curve
     return axiskeys(system.offer_curve, 2)
+end
+
+"""
+    gens_per_zone(system::System)
+
+Returns a `Dict` with  keys of `Zone` numbers and values of generator names in that zone.
+"""
+function gens_per_zone(system::System)
+    gens_per_zone = Dict{Int, Vector{Int}}()
+    for gen in system.generators
+        if haskey(gens_per_zone, gen.zone)
+            push!(gens_per_zone[gen.zone], gen.unit_code)
+        else
+            gens_per_zone[gen.zone] = [gen.unit_code]
+        end
+    end
+    return gens_per_zone
+end
+
+"""
+    branches_by_breakpoints(system::System)
+
+Returns three vectors containing of the names of branches which have 0, 1, and 2 breakpoints.
+"""
+function branches_by_breakpoints(system::System)
+    zero_bp, one_bp, two_bp = String[], String[], String[]
+    for branch in system.branches
+        if branch.is_monitored
+            if all(branch.break_points .== 0.0)
+                push!(zero_bp, branch.name)
+            elseif last(branch.break_points) == 0.0
+                push!(one_bp, branch.name)
+            else
+                push!(two_bp, branch.name)
+            end
+        end
+    end
+    return zero_bp, one_bp, two_bp
 end
