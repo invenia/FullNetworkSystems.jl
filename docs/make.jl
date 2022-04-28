@@ -1,4 +1,6 @@
+using AxisKeys: KeyedArray
 using FullNetworkSystems
+using InlineStrings: String15, String31
 using Documenter
 
 DocMeta.setdocmeta!(FullNetworkSystems, :DocTestSetup, :(using FullNetworkSystems); recursive=true)
