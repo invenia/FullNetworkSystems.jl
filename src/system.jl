@@ -240,7 +240,7 @@ struct SystemRT <: System
     offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
     "Generator status indicated by a `Bool`"
     status::KeyedArray{Bool, 2}
-    "Generator ancillary service status indicated by a `Bool`"
+    "Generator regulation status indicated by a `Bool`"
     status_regulation::KeyedArray{Bool, 2}
     "Generator minimum output in the ancillary services market (MW)"
     regulation_min::KeyedArray{Float64, 2}
