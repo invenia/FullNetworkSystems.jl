@@ -58,15 +58,15 @@
             ]
         )
 
-        gens_per_bus = Dict(b => rand(gen_ids, 3) for b in bus_names)
-        incs_per_bus = Dict(b => string.(rand('A':'Z', 3)) for b in bus_names)
-        decs_per_bus = Dict(b => string.(rand('A':'Z', 3)) for b in bus_names)
-        psds_per_bus = Dict(b => string.(rand('A':'Z', 3)) for b in bus_names)
-        loads_per_bus = Dict(b => string.(rand('A':'Z', 3)) for b in bus_names)
+        gens_per_bus = Dictionary(bus_names, rand(gen_ids, 3) for _ in bus_names)
+        incs_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
+        decs_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
+        psds_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
+        loads_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
 
-        LODF = Dict(
-            "CONTIN_1" => KeyedArray(rand(3, 1);
-            branches=branch_names, branch=[first(branch_names)])
+        LODF = Dictionary(
+            ["CONTIN_1"],
+            [KeyedArray(rand(3, 1); branches=branch_names, branch=[first(branch_names)])]
         )
         PTDF = KeyedArray(rand(3, 3); row=branch_names, col=bus_names)
 

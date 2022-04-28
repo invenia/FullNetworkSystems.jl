@@ -10,17 +10,19 @@ $TYPEDFIELDS
 struct Zone
     "Zone number"
     number::Int64
-    "Zonal regulation requirement (MWs)"
+    "Zonal regulation requirement (MW)"
     reg::Float64
-    "Zonal spinning requirement (MWs)"
+    "Zonal spinning requirement (MW)"
     spin::Float64
-    "Zonal supplemental on requirement (MWs)"
+    "Zonal supplemental on requirement (MW)"
     sup_on::Float64
-    "Zonal supplemental off requirement (MWs)"
+    "Zonal supplemental off requirement (MW)"
     sup_off::Float64
 end
 
 ###### Static Component Types ######
+const BusName = InlineString15
+const BranchName = InlineString31
 
 """
     $TYPEDEF
@@ -64,7 +66,7 @@ $TYPEDFIELDS
 """
 struct Bus
     "Bus name"
-    name::InlineString15
+    name::BusName
     "Base voltage (kV)"
     base_voltage::Float64
 end
@@ -80,11 +82,11 @@ $TYPEDFIELDS
 """
 struct Branch
     "Branch long name"
-    name::InlineString31
+    name::BranchName
     "Name of the bus the branch goes to"
-    to_bus::InlineString15
+    to_bus::BusName
     "Name of the bus the branch goes from"
-    from_bus::InlineString15
+    from_bus::BusName
     "Power flow limit for the base case (MVA)"
     rate_a::Float64
     "Power flow limit for contingency scenario (MVA)"
@@ -106,7 +108,7 @@ end
 The abstract type for representing the whole power system including topology, static
 components and their attributes, and time series data.
 
-Topology: `Dict`s linking generators, loads, and bids (if present) to buses.
+Topology: `Dictionary`s linking generators, loads, and bids (if present) to buses.
 System wide static components and grid matrices: zones, buses, generators, branches, LODF and PTDF.
 Time series data: all the time series associated with generators, loads and bids.  All stored
 as `KeyedArray`s of `ids x datetimes`.
@@ -122,31 +124,31 @@ Fields:
 $TYPEDFIELDS
 """
 struct SystemDA <: System
-    "`Dict` where the keys are bus names and the values are generator ids at that bus"
-    gens_per_bus::Dict{InlineString15, Vector{Int}}
-    "`Dict` where the keys are bus names and the values are increment bid ids at that bus"
-    incs_per_bus::Dict{InlineString15, Vector{String}}
-    "`Dict` where the keys are bus names and the values are decrement bid ids at that bus"
-    decs_per_bus::Dict{InlineString15, Vector{String}}
-    "`Dict` where the keys are bus names and the values are price sensitive demand ids at that bus"
-    psds_per_bus::Dict{InlineString15, Vector{String}}
-    "`Dict` where the keys are bus names and the values are load ids at that bus"
-    loads_per_bus::Dict{InlineString15, Vector{String}}
+    "`Dictionary` where the keys are bus names and the values are generator ids at that bus"
+    gens_per_bus::Dictionary{BusName, Vector{Int}}
+    "`Dictionary` where the keys are bus names and the values are increment bid ids at that bus"
+    incs_per_bus::Dictionary{BusName, Vector{String}}
+    "`Dictionary` where the keys are bus names and the values are decrement bid ids at that bus"
+    decs_per_bus::Dictionary{BusName, Vector{String}}
+    "`Dictionary` where the keys are bus names and the values are price sensitive demand ids at that bus"
+    psds_per_bus::Dictionary{BusName, Vector{String}}
+    "`Dictionary` where the keys are bus names and the values are load ids at that bus"
+    loads_per_bus::Dictionary{BusName, Vector{String}}
 
     "Zones in the `System`, which will also include a `Zone` entry for the market wide zone"
     zones::Dictionary{Int, Zone}
     "Buses in the `System` indexed by bus name"
-    buses::Dictionary{InlineString15, Bus}
+    buses::Dictionary{BusName, Bus}
     "Generators in the `System` indexed by unit code"
     generators::Dictionary{Int, Generator}
     "Branches in the `System` indexed by branch name"
-    branches::Dictionary{InlineString31, Branch}
+    branches::Dictionary{BranchName, Branch}
     """
     The line outage distribution factor matrix of the system for a set of contingencies given
-    by the keys of the `Dict`. Each entry is a `KeyedArray` with axis keys
+    by the keys of the `Dictionary`. Each entry is a `KeyedArray` with axis keys
     `branch names x branch on outage`
     """
-    LODF::Dict{String, KeyedArray{Float64, 2}}
+    LODF::Dictionary{String, KeyedArray{Float64, 2}}
     """
     Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
     `branch names x bus names`
@@ -154,7 +156,7 @@ struct SystemDA <: System
     PTDF::KeyedArray{Float64, 2}
 
     # Generator related time series
-    "Generation of the generators at the start of the day (MWs)"
+    "Generation of the generators at the start of the day (MW)"
     initial_generation::KeyedArray{Float64, 1}
     "Hours each generator has been at its current status at the start of the day"
     hours_at_status::KeyedArray{Float64, 1}
@@ -164,13 +166,13 @@ struct SystemDA <: System
     availability::KeyedArray{Bool, 2}
     "Generator must run flag indicating that the generator has to be committed at that hour"
     must_run::KeyedArray{Bool, 2}
-    "Generator minimum output in the ancillary services market (MWs)"
+    "Generator minimum output in the ancillary services market (MW)"
     regulation_min::KeyedArray{Float64, 2}
-    "Generator maximum output in the ancillary services market (MWs)"
+    "Generator maximum output in the ancillary services market (MW)"
     regulation_max::KeyedArray{Float64, 2}
-    "Generator minimum output (MWs)"
+    "Generator minimum output (MW)"
     pmin::KeyedArray{Float64, 2}
-    "Generator maximum output (MWs)"
+    "Generator maximum output (MW)"
     pmax::KeyedArray{Float64, 2}
     "Ancillary services regulation offer prices (\$ /MW)"
     asm_regulation::KeyedArray{Float64, 2}
@@ -203,25 +205,25 @@ Fields:
 $TYPEDFIELDS
 """
 struct SystemRT <: System
-    "`Dict` where the keys are bus names and the values are generator ids at that bus"
-    gens_per_bus::Dict{InlineString15, Vector{Int}}
-    "`Dict` where the keys are bus names and the values are load ids at that bus"
-    loads_per_bus::Dict{InlineString15, Vector{String}}
+    "`Dictionary` where the keys are bus names and the values are generator ids at that bus"
+    gens_per_bus::Dictionary{BusName, Vector{Int}}
+    "`Dictionary` where the keys are bus names and the values are load ids at that bus"
+    loads_per_bus::Dictionary{BusName, Vector{String}}
 
     "Zones in the `System`, which will also include a `Zone` entry for the market wide zone"
     zones::Dictionary{Int, Zone}
     "Buses in the `System` indexed by bus name"
-    buses::Dictionary{InlineString15, Bus}
+    buses::Dictionary{BusName, Bus}
     "Generators in the `System` indexed by unit code"
     generators::Dictionary{Int, Generator}
     "Branches in the `System` indexed by branch name"
-    branches::Dictionary{InlineString31, Branch}
+    branches::Dictionary{BranchName, Branch}
     """
     The line outage distribution factor matrix of the system for a set of contingencies given
-    by the keys of the `Dict`. Each entry is a `KeyedArray` with axis keys
+    by the keys of the `Dictionary`. Each entry is a `KeyedArray` with axis keys
     `branch names x branch on outage`
     """
-    LODF::Dict{String, KeyedArray{Float64, 2}}
+    LODF::Dictionary{String, KeyedArray{Float64, 2}}
     """
     Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
     `branch names x bus names`
@@ -229,7 +231,7 @@ struct SystemRT <: System
     PTDF::KeyedArray{Float64, 2}
 
     # Generator related time series
-    "Generation of the generator at the start of the time period (MWs)"
+    "Generation of the generator at the start of the time period (MW)"
     initial_generation::KeyedArray{Float64, 1}
     "Generator offer curves. `KeyedArray` where the axis keys are `generator names x datetimes`"
     offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
@@ -237,13 +239,13 @@ struct SystemRT <: System
     status::KeyedArray{Bool, 2}
     "Generator ancillary service status indicated by a `Bool`"
     status_regulation::KeyedArray{Bool, 2}
-    "Generator minimum output in the ancillary services market (MWs)"
+    "Generator minimum output in the ancillary services market (MW)"
     regulation_min::KeyedArray{Float64, 2}
-    "Generator maximum output in the ancillary services market (MWs)"
+    "Generator maximum output in the ancillary services market (MW)"
     regulation_max::KeyedArray{Float64, 2}
-    "Generator minimum output (MWs)"
+    "Generator minimum output (MW)"
     pmin::KeyedArray{Float64, 2}
-    "Generator maximum output (MWs)"
+    "Generator maximum output (MW)"
     pmax::KeyedArray{Float64, 2}
     "Ancillary services regulation offer prices (\$ /MW)"
     asm_regulation::KeyedArray{Float64, 2}
