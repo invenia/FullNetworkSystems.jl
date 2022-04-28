@@ -130,7 +130,10 @@ struct SystemDA <: System
     incs_per_bus::Dictionary{BusName, Vector{String}}
     "`Dictionary` where the keys are bus names and the values are decrement bid ids at that bus"
     decs_per_bus::Dictionary{BusName, Vector{String}}
-    "`Dictionary` where the keys are bus names and the values are price sensitive demand ids at that bus"
+    """
+    `Dictionary` where the keys are bus names and the values are price sensitive demand bid
+    ids at that bus
+    """
     psds_per_bus::Dictionary{BusName, Vector{String}}
     "`Dictionary` where the keys are bus names and the values are load ids at that bus"
     loads_per_bus::Dictionary{BusName, Vector{String}}
@@ -189,10 +192,10 @@ struct SystemDA <: System
 
     # Virtuals/PSD time series
     "Increment bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
-    increment_bids::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    increment::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
     "Decrement bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
-    decrement_bids::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
-    "Price sensitive demand time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
+    decrement::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    "Price sensitive demand bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
     price_sensitive_demand::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
 end
 
