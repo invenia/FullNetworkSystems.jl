@@ -150,7 +150,7 @@ Generator status time series data needed for the day-ahead formulation.
 Fields:
 $TYPEDFIELDS
 """
-struct GeneratorStatusDA
+struct GeneratorStatusDA <: GeneratorStatus
     "Hours each generator has been at its current status at the start of the day"
     hours_at_status::KeyedArray{Float64, 1}
     "Generator availability"
@@ -167,7 +167,7 @@ Generator status time series data needed for the real-time formulation.
 Fields:
 $TYPEDFIELDS
 """
-struct GeneratorStatusRT
+struct GeneratorStatusRT <: GeneratorStatus
     "Generator status indicated by a `Bool`"
     status::KeyedArray{Bool, 2}
     "Generator regulation status indicated by a `Bool`"
@@ -308,7 +308,7 @@ function Base.show(io::IO, ::MIME"text/plain", system::T) where {T <: System}
     for (name, type) in zip(fieldnames(T), fieldtypes(T))
         if name == last(fieldnames(T))
             print(io, "$name")
-        elseif type <: Union{GeneratorTimeSeries, GeneratorStatus}
+        elseif type <: Union{GeneratorTimeSeries, <:GeneratorStatus}
             for name in fieldnames(type)
                 print(io, "$name, ")
             end
