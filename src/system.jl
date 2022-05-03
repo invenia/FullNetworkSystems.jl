@@ -1,3 +1,4 @@
+const MARKET_WIDE_ZONE = -9999
 """
     $TYPEDEF
 
@@ -329,6 +330,91 @@ function get_datetimes(system::System)
     return axiskeys(system.generator_time_series.offer_curve, 2)
 end
 
+get_zones(system::System) = system.zones
+
+function get_regulation_requirements(system::System)
+    return map(system.zones) do zone
+        zone.reg
+    end
+end
+
+function get_operating_reserve_requirements(system::System) # !!!! don't know what this is
+    return map(system.zones) do zone
+        sum([zone.reg, zone.spin])
+    end
+end
+
+function get_static_components(system::System)
+    return system.buses, system.generators, system.branches
+end
+
+get_buses(system::System) = system.buses
+get_generators(system::System) = system.generators
+get_branches(system::System) = system.branches
+
+get_gens_per_bus(system::System) = system.gens_per_bus
+get_loads_per_bus(system::System) = system.loads_per_bus
+get_incs_per_bus(system::SystemDA) = system.incs_per_bus
+get_decs_per_bus(system::SystemDA) = system.decs_per_bus
+get_psds_per_bus(system::SystemDA) = system.psds_per_bus
+
+get_ptdf(system::System) = system.PTDF
+get_lodf(system::System) = system.LODF
+
+function get_initial_commitment(system::SystemDA)
+    return map(system.initial_generation) do i
+        i == 0.0 ? false : true
+    end
+end
+
+function get_bids_timeseries(system::SystemDA, type_of_bid::Symbol)
+    return getproperty(system, type_of_bid)
+end
+get_availability_timeseries(system::SystemDA) = system.availability
+get_must_run_timeseries(system::SystemDA) = system.must_run
+
+get_initial_generation(system::System) = system.initial_generation
+get_load_timeseries(system::System) = system.loads
+get_offer_curve_timeseries(system::System) = system.offer_curve
+get_pmin_timeseries(system::System) = system.pmin
+get_pmax_timeseries(system::System) = system.pmax
+get_regmin_timeseries(system::System) = system.regulation_min
+get_regmax_timeseries(system::System) = system.regulation_max
+
+get_regulation_timeseries(system::System) = system.asm_regulation
+get_spinning_timeseries(system::System) = system.asm_spin
+get_supplemental_on_timeseries(system::System) = system.asm_sup_on
+get_supplemental_off_timeseries(system::System) = system.asm_sup_off
+
+get_commitment_status(system::SystemRT) = system.status
+get_commitment_reg_status(system::SystemRT) = system.status_regulation
+
+function get_regulation_providers(system::System)
+    ts = system.asm_regulation
+    return _get_providers(ts)
+end
+
+function get_spinning_providers(system::System)
+    ts = system.asm_spin
+    return _get_providers(ts)
+end
+
+function get_sup_on_providers(system::System)
+    ts = system.asm_sup_on
+    return _get_providers(ts)
+end
+
+function get_sup_off_providers(system::System)
+    ts = system.asm_sup_off
+    return _get_providers(ts)
+end
+
+function _get_providers(ts)
+    units = axiskeys(ts, 1)
+    providers = vec(sum(ts .!= 0.0, dims=2) .!= 0)
+    return units[providers]
+end
+
 """
     gens_per_zone(system::System)
 
@@ -343,6 +429,7 @@ function gens_per_zone(system::System)
             gens_per_zone[gen.zone] = [gen.unit_code]
         end
     end
+    gens_per_zone[MARKET_WIDE_ZONE] = collect(keys(system.generators))
     return gens_per_zone
 end
 
