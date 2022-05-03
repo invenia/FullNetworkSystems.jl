@@ -70,6 +70,19 @@
         )
         PTDF = KeyedArray(rand(3, 3); row=branch_names, col=bus_names)
 
+        generator_time_series = GeneratorTimeSeries(
+            fake_vec_ts,
+            fake_offer_ts,
+            fake_gen_ts,
+            fake_gen_ts,
+            fake_gen_ts,
+            fake_gen_ts,
+            fake_gen_ts,
+            fake_gen_ts,
+            fake_gen_ts,
+            fake_gen_ts
+        )
+        da_gen_status = GeneratorStatusDA(fake_vec_ts, fake_bool_ts, fake_bool_ts)
         da_system = SystemDA(
             gens_per_bus,
             incs_per_bus,
@@ -82,19 +95,8 @@
             branches,
             LODF,
             PTDF,
-            fake_vec_ts,
-            fake_vec_ts,
-            fake_offer_ts,
-            fake_bool_ts,
-            fake_bool_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
+            generator_time_series,
+            da_gen_status,
             fake_gen_ts,
             fake_offer_ts,
             fake_offer_ts,
@@ -112,6 +114,7 @@
         @test one_bp == String[] #unmonitored
         @test two_bp == ["1"]
 
+        rt_gen_status = GeneratorStatusRT(fake_bool_ts, fake_bool_ts)
         rt_system = SystemRT(
             gens_per_bus,
             loads_per_bus,
@@ -121,18 +124,8 @@
             branches,
             LODF,
             PTDF,
-            fake_vec_ts,
-            fake_offer_ts,
-            fake_bool_ts,
-            fake_bool_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
+            generator_time_series,
+            rt_gen_status,
             fake_gen_ts
         )
 
