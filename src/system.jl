@@ -153,9 +153,9 @@ $TYPEDFIELDS
 struct GeneratorStatusDA <: GeneratorStatus
     "Hours each generator has been at its current status at the start of the day"
     hours_at_status::KeyedArray{Float64, 1}
-    "Generator availability"
+    "Flag indicating if generator is available to be committed in each hour"
     availability::KeyedArray{Bool, 2}
-    "Generator must run flag indicating that the generator has to be committed at that hour"
+    "Flag indicating if the generator must be committed in each hour"
     must_run::KeyedArray{Bool, 2}
 end
 
