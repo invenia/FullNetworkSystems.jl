@@ -102,6 +102,78 @@ struct Branch
     penalties::Tuple{Float64, Float64}
 end
 
+###### Time Series types ######
+
+"""
+    $TYPEDEF
+
+Generator related time series data that is needed for both the day-ahead and real-time formulations.
+
+Fields:
+$TYPEDFIELDS
+"""
+struct GeneratorTimeSeries
+    "Generation of the generator at the start of the time period (MW)"
+    initial_generation::KeyedArray{Float64, 1}
+    "Generator offer curves. `KeyedArray` where the axis keys are `generator names x datetimes`"
+    offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    "Generator minimum output in the ancillary services market (MW)"
+    regulation_min::KeyedArray{Float64, 2}
+    "Generator maximum output in the ancillary services market (MW)"
+    regulation_max::KeyedArray{Float64, 2}
+    "Generator minimum output (MW)"
+    pmin::KeyedArray{Float64, 2}
+    "Generator maximum output (MW)"
+    pmax::KeyedArray{Float64, 2}
+    "Ancillary services regulation offer prices (\$ /MW)"
+    asm_regulation::KeyedArray{Float64, 2}
+    "Ancillary services spinning offer prices (\$ /MW)"
+    asm_spin::KeyedArray{Float64, 2}
+    "Ancillary services supplemental on offer prices (\$ /MW)"
+    asm_sup_on::KeyedArray{Float64, 2}
+    "Ancillary services supplemental off offer prices (\$ /MW)"
+    asm_sup_off::KeyedArray{Float64, 2}
+end
+
+"""
+    $TYPEDEF
+
+Abstract type for storing time series of generator status information.
+"""
+abstract type GeneratorStatus end
+
+"""
+    $TYPEDEF
+
+Generator status time series data needed for the day-ahead formulation.
+
+Fields:
+$TYPEDFIELDS
+"""
+struct GeneratorStatusDA <: GeneratorStatus
+    "Hours each generator has been at its current status at the start of the day"
+    hours_at_status::KeyedArray{Float64, 1}
+    "Flag indicating if generator is available to be committed in each hour"
+    availability::KeyedArray{Bool, 2}
+    "Flag indicating if the generator must be committed in each hour"
+    must_run::KeyedArray{Bool, 2}
+end
+
+"""
+    $TYPEDEF
+
+Generator status time series data needed for the real-time formulation.
+
+Fields:
+$TYPEDFIELDS
+"""
+struct GeneratorStatusRT <: GeneratorStatus
+    "Generator status indicated by a `Bool`"
+    status::KeyedArray{Bool, 2}
+    "Generator regulation status indicated by a `Bool`"
+    status_regulation::KeyedArray{Bool, 2}
+end
+
 """
     System
 
@@ -159,32 +231,10 @@ struct SystemDA <: System
     PTDF::KeyedArray{Float64, 2}
 
     # Generator related time series
-    "Generation of the generators at the start of the day (MW)"
-    initial_generation::KeyedArray{Float64, 1}
-    "Hours each generator has been at its current status at the start of the day"
-    hours_at_status::KeyedArray{Float64, 1}
-    "Generator offer curves. `KeyedArray` where the axis keys are `generator names x datetimes`"
-    offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
-    "Generator availability"
-    availability::KeyedArray{Bool, 2}
-    "Generator must run flag indicating that the generator has to be committed at that hour"
-    must_run::KeyedArray{Bool, 2}
-    "Generator minimum output in the ancillary services market (MW)"
-    regulation_min::KeyedArray{Float64, 2}
-    "Generator maximum output in the ancillary services market (MW)"
-    regulation_max::KeyedArray{Float64, 2}
-    "Generator minimum output (MW)"
-    pmin::KeyedArray{Float64, 2}
-    "Generator maximum output (MW)"
-    pmax::KeyedArray{Float64, 2}
-    "Ancillary services regulation offer prices (\$ /MW)"
-    asm_regulation::KeyedArray{Float64, 2}
-    "Ancillary services spinning offer prices (\$ /MW)"
-    asm_spin::KeyedArray{Float64, 2}
-    "Ancillary services supplemental on offer prices (\$ /MW)"
-    asm_sup_on::KeyedArray{Float64, 2}
-    "Ancillary services supplemental off offer prices (\$ /MW)"
-    asm_sup_off::KeyedArray{Float64, 2}
+    "Generator related time series data"
+    generator_time_series::GeneratorTimeSeries
+    "Generator status time series needed for the day-ahead formulation"
+    generator_status::GeneratorStatusDA
 
     # Load time series
     "Load time series data. `KeyedArray` where the axis keys are `load ids x datetimes`"
@@ -234,30 +284,10 @@ struct SystemRT <: System
     PTDF::KeyedArray{Float64, 2}
 
     # Generator related time series
-    "Generation of the generator at the start of the time period (MW)"
-    initial_generation::KeyedArray{Float64, 1}
-    "Generator offer curves. `KeyedArray` where the axis keys are `generator names x datetimes`"
-    offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
-    "Generator status indicated by a `Bool`"
-    status::KeyedArray{Bool, 2}
-    "Generator regulation status indicated by a `Bool`"
-    status_regulation::KeyedArray{Bool, 2}
-    "Generator minimum output in the ancillary services market (MW)"
-    regulation_min::KeyedArray{Float64, 2}
-    "Generator maximum output in the ancillary services market (MW)"
-    regulation_max::KeyedArray{Float64, 2}
-    "Generator minimum output (MW)"
-    pmin::KeyedArray{Float64, 2}
-    "Generator maximum output (MW)"
-    pmax::KeyedArray{Float64, 2}
-    "Ancillary services regulation offer prices (\$ /MW)"
-    asm_regulation::KeyedArray{Float64, 2}
-    "Ancillary services spinning offer prices (\$ /MW)"
-    asm_spin::KeyedArray{Float64, 2}
-    "Ancillary services supplemental on offer prices (\$ /MW)"
-    asm_sup_on::KeyedArray{Float64, 2}
-    "Ancillary services supplemental off offer prices (\$ /MW)"
-    asm_sup_off::KeyedArray{Float64, 2}
+    "Generator related time series data"
+    generator_time_series::GeneratorTimeSeries
+    "Generator status time series needed for the real-time formulation"
+    generator_status::GeneratorStatusRT
 
     # Load time series
     "Load time series data. `KeyedArray` where the axis keys are `load ids x datetimes`"
@@ -278,6 +308,10 @@ function Base.show(io::IO, ::MIME"text/plain", system::T) where {T <: System}
     for (name, type) in zip(fieldnames(T), fieldtypes(T))
         if name == last(fieldnames(T))
             print(io, "$name")
+        elseif type <: Union{GeneratorTimeSeries, <:GeneratorStatus}
+            for name in fieldnames(type)
+                print(io, "$name, ")
+            end
         elseif type <: KeyedArray && name != :PTDF
             print(io, "$name, ")
         end
@@ -292,7 +326,7 @@ Extract datetimes from a `System`.
 """
 function get_datetimes(system::System)
     # use offer_curve axiskeys because all subtypes of System have offer_curve
-    return axiskeys(system.offer_curve, 2)
+    return axiskeys(system.generator_time_series.offer_curve, 2)
 end
 
 """
