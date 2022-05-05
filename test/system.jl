@@ -102,17 +102,7 @@
             fake_offer_ts,
             fake_offer_ts
         )
-
         @test da_system isa SystemDA
-        @test get_datetimes(da_system) == datetimes
-
-        expected_gens_zones = Dict(1 => gen_ids)
-        @test gens_per_zone(da_system) == expected_gens_zones
-
-        zero_bp, one_bp, two_bp = branches_by_breakpoints(da_system)
-        @test zero_bp == ["3"]
-        @test one_bp == String[] #unmonitored
-        @test two_bp == ["1"]
 
         rt_gen_status = GeneratorStatusRT(fake_bool_ts, fake_bool_ts)
         rt_system = SystemRT(
@@ -128,8 +118,76 @@
             rt_gen_status,
             fake_gen_ts
         )
-
         @test rt_system isa SystemRT
-        @test get_datetimes(rt_system) == datetimes
+
+        @testset "System accessor functions" begin
+            @testset "Common accessors $T" for (system, T) in (
+                (da_system, SystemDA), (rt_system, SystemRT)
+            )
+                @test get_datetimes(system) == datetimes
+                @test get_zones(system) == zones
+                @test get_regulation_requirements(system) == Dictionary([1, 2, -9999], [1.0, 4.0, 3.0])
+                @test get_operating_reserve_requirements(system) == Dictionary([1, 2, -9999], [2.0, 6.0, 6.0])
+                @test get_static_components(system) == (buses, gens, branches)
+                @test get_buses(system) == buses
+                @test get_generators(system) == gens
+                @test get_branches(system) == branches
+
+                @test get_gens_per_bus(system) == gens_per_bus
+                @test get_loads_per_bus(system) == loads_per_bus
+
+                @test get_ptdf(system) == PTDF
+                @test get_lodf(system) == LODF
+
+                @test get_initial_generation(system) == fake_vec_ts
+                @test get_load_timeseries(system) == fake_gen_ts
+                @test get_offer_curve_timeseries(system) == fake_offer_ts
+                @test get_pmin_timeseries(system) == fake_gen_ts
+                @test get_pmax_timeseries(system) == fake_gen_ts
+                @test get_regmin_timeseries(system) == fake_gen_ts
+                @test get_regmax_timeseries(system) == fake_gen_ts
+
+                @test get_regulation_timeseries(system) == fake_gen_ts
+                @test get_spinning_timeseries(system) == fake_gen_ts
+                @test get_supplemental_on_timeseries(system) == fake_gen_ts
+                @test get_supplemental_off_timeseries(system) == fake_gen_ts
+
+                # !!!! define some gens as non-providers?
+                @test get_regulation_providers(system) == gen_ids
+                @test get_spinning_providers(system) == gen_ids
+                @test get_sup_on_providers(system) == gen_ids
+                @test get_sup_off_providers(system) == gen_ids
+
+                gens_by_zone = gens_per_zone(da_system)
+                @test issetequal(keys(gens_by_zone), [1, FullNetworkSystems.MARKET_WIDE_ZONE])
+                for (_, v) in gens_by_zone
+                    @test v == gen_ids
+                end
+
+                zero_bp, one_bp, two_bp = branches_by_breakpoints(da_system)
+                @test zero_bp == ["3"]
+                @test one_bp == String[] #unmonitored
+                @test two_bp == ["1"]
+            end
+
+            @testset "SystemDA only accessors" begin
+                @test get_initial_commitment(da_system) isa KeyedArray{Bool, 1}
+                @test get_incs_per_bus(da_system) == incs_per_bus
+                @test get_decs_per_bus(da_system) == decs_per_bus
+                @test get_psds_per_bus(da_system) == psds_per_bus
+
+                @test get_bids_timeseries(da_system, :increment) == fake_offer_ts
+                @test get_bids_timeseries(da_system, :decrement) == fake_offer_ts
+                @test get_bids_timeseries(da_system, :price_sensitive_demand) == fake_offer_ts
+
+                @test get_availability_timeseries(da_system) == fake_bool_ts
+                @test get_must_run_timeseries(da_system) == fake_bool_ts
+            end
+
+            @testset "SystemRT only accessors" begin
+                @test get_commitment_status(rt_system) == fake_bool_ts
+                @test get_commitment_reg_status(rt_system) == fake_bool_ts
+            end
+        end
     end
 end
