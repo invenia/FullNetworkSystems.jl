@@ -22,5 +22,6 @@ export get_commitment_status, get_commitment_reg_status
 export get_regulation_providers, get_spinning_providers, get_sup_on_providers, get_sup_off_providers
 
 include("system.jl")
+include("accessors.jl")
 
 end
