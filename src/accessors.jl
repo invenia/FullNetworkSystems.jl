@@ -13,20 +13,22 @@ get_zones(system::System) = system.zones
 "Returns a `Dictionary` with zonal regulation requirements indexed by zone number."
 function get_regulation_requirements(system::System)
     return map(system.zones) do zone
-        zone.reg
+        zone.regulation
     end
 end
 
 "Returns a `Dictionary` with zonal operating reserve requirements indexed by zone number."
 function get_operating_reserve_requirements(system::System)
     return map(system.zones) do zone
-        sum([zone.reg, zone.spin, zone.sup_on, zone.sup_off])
+        zone.operating_reserve
     end
 end
 
-"Extract the static component attributes for buses, generators and branches from a `System`."
-function get_static_components(system::System)
-    return system.buses, system.generators, system.branches
+"Returns a `Dictionary` with zonal good utility practice requirements indexed by zone number."
+function get_good_utility_requirements(system::System)
+    return map(system.zones) do zone
+        zone.good_utility
+    end
 end
 
 "Returns a `Dictionary` of `Bus` objects in the `System` indexed by bus name."
@@ -70,48 +72,6 @@ get_supplemental_on(system::System) = system.generator_time_series.asm_sup_on
 "Returns time series data of offer prices for ancillary servives supplemental off (\$ /MW)"
 get_supplemental_off(system::System) = system.generator_time_series.asm_sup_off
 
-"""
-Returns a collection of the units that submitted regulation offers in the ancillary services
-market.
-"""
-function get_regulation_providers(system::System)
-    ts = system.generator_time_series.asm_regulation
-    return _get_providers(ts)
-end
-
-"""
-Returns a collection of the units that submitted spinning offers in the ancillary services
-market.
-"""
-function get_spinning_providers(system::System)
-    ts = system.generator_time_series.asm_spin
-    return _get_providers(ts)
-end
-
-"""
-Returns a collection of the units that submitted supplemental on offers in the ancillary
-services market.
-"""
-function get_sup_on_providers(system::System)
-    ts = system.generator_time_series.asm_sup_on
-    return _get_providers(ts)
-end
-
-"""
-Returns a collection of the units that submitted supplemental off offers in the ancillary
-services market.
-"""
-function get_sup_off_providers(system::System)
-    ts = system.generator_time_series.asm_sup_off
-    return _get_providers(ts)
-end
-
-function _get_providers(ts)
-    units = axiskeys(ts, 1)
-    providers = vec(sum(ts .!= 0.0, dims=2) .!= 0)
-    return units[providers]
-end
-
 "Returns a flag indicating whether each generator was on at the start of the day."
 function get_initial_commitment(system::SystemDA)
     return map(system.generator_time_series.initial_generation) do i
@@ -140,9 +100,9 @@ get_availability(system::SystemDA) = system.generator_status.availability
 get_must_run(system::SystemDA) = system.generator_status.must_run
 
 "Returns time series data of generator status in each hour"
-get_commitment_status(system::SystemRT) = system.generator_status.status
+get_commitment(system::SystemRT) = system.generator_status.status
 "Returns time series data of generator regulation status in each hour"
-get_commitment_reg_status(system::SystemRT) = system.generator_status.status_regulation
+get_regulation_commitment(system::SystemRT) = system.generator_status.status_regulation
 
 """
     gens_per_zone(system::System)

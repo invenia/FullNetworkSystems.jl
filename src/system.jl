@@ -12,13 +12,11 @@ struct Zone
     "Zone number"
     number::Int64
     "Zonal regulation requirement (MW)"
-    reg::Float64
-    "Zonal spinning requirement (MW)"
-    spin::Float64
-    "Zonal supplemental on requirement (MW)"
-    sup_on::Float64
-    "Zonal supplemental off requirement (MW)"
-    sup_off::Float64
+    regulation::Float64
+    "Zonal operating reserve requirement (regulation + spinning + supplemental) (MW)"
+    operating_reserve::Float64
+    "Zoneal good utility practice requirement (regulation + spinning) (MW)"
+    good_utility::Float64
 end
 
 ###### Static Component Types ######
@@ -126,14 +124,26 @@ struct GeneratorTimeSeries
     pmin::KeyedArray{Float64, 2}
     "Generator maximum output (MW)"
     pmax::KeyedArray{Float64, 2}
-    "Ancillary services regulation offer prices (\$ /MW)"
-    asm_regulation::KeyedArray{Float64, 2}
-    "Ancillary services spinning offer prices (\$ /MW)"
-    asm_spin::KeyedArray{Float64, 2}
-    "Ancillary services supplemental on offer prices (\$ /MW)"
-    asm_sup_on::KeyedArray{Float64, 2}
-    "Ancillary services supplemental off offer prices (\$ /MW)"
-    asm_sup_off::KeyedArray{Float64, 2}
+    """
+    Ancillary services regulation offer prices (\$ /MW). Generators not providing the service
+    will have `missing` offer data
+    """
+    asm_regulation::KeyedArray{Union{Missing, Float64}, 2}
+    """
+    Ancillary services spinning offer prices (\$ /MW). Generators not providing the service
+    will have `missing` offer data
+    """
+    asm_spin::KeyedArray{Union{Missing, Float64}, 2}
+    """
+    Ancillary services supplemental on offer prices (\$ /MW). Generators not providing the service
+    will have `missing` offer data
+    """
+    asm_sup_on::KeyedArray{Union{Missing, Float64}, 2}
+    """
+    Ancillary services supplemental off offer prices (\$ /MW). Generators not providing the service
+    will have `missing` offer data
+    """
+    asm_sup_off::KeyedArray{Union{Missing, Float64}, 2}
 end
 
 """
@@ -169,9 +179,9 @@ Fields:
 $TYPEDFIELDS
 """
 struct GeneratorStatusRT <: GeneratorStatus
-    "Generator status indicated by a `Bool`"
+    "Generator commitment status indicated by a `Bool`"
     status::KeyedArray{Bool, 2}
-    "Generator regulation status indicated by a `Bool`"
+    "Generator regulation commitment status indicated by a `Bool`"
     status_regulation::KeyedArray{Bool, 2}
 end
 

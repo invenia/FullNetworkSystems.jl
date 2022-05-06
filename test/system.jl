@@ -9,12 +9,16 @@
         ids=gen_ids, datetimes=datetimes
     )
     fake_bool_ts = KeyedArray(rand(Bool, 10, 24); ids=gen_ids, datetimes=datetimes)
+    fake_services_ts = KeyedArray(
+        vcat(rand(9, 24), fill(missing, 24)');
+        ids=gen_ids, datetimes=datetimes
+    )
 
     branch_names = string.([1, 2, 3])
     bus_names = ["A", "B", "C"]
 
     @testset "Zone" begin
-        zone1 = Zone(1, 1.0, 1.0, 1.0, 1.0)
+        zone1 = Zone(1, 1.0, 1.0, 1.0)
         @test zone1 isa Zone
     end
 
@@ -34,9 +38,9 @@
     end
 
     @testset "System" begin
-        zone1 = Zone(1, 1.0, 1.0, 1.0, 1.0)
-        zone2 = Zone(2, 4.0, 2.0, 4.0, 2.0)
-        zone_market = Zone(-9999, 3.0, 3.0, 3.0, 3.0)
+        zone1 = Zone(1, 1.0, 1.0, 1.0)
+        zone2 = Zone(2, 4.0, 2.0, 4.0)
+        zone_market = Zone(-9999, 3.0, 3.0, 3.0)
         zones = Dictionary([1, 2, -9999], [zone1, zone2, zone_market])
 
         gen_types = map(gen_ids) do id
@@ -77,10 +81,10 @@
             fake_gen_ts,
             fake_gen_ts,
             fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts
+            fake_services_ts,
+            fake_services_ts,
+            fake_services_ts,
+            fake_services_ts
         )
         da_gen_status = GeneratorStatusDA(fake_vec_ts, fake_bool_ts, fake_bool_ts)
         da_system = SystemDA(
@@ -127,8 +131,8 @@
                 @test get_datetimes(system) == datetimes
                 @test get_zones(system) == zones
                 @test get_regulation_requirements(system) == Dictionary([1, 2, -9999], [1.0, 4.0, 3.0])
-                @test get_operating_reserve_requirements(system) == Dictionary([1, 2, -9999], [4.0, 12.0, 12.0])
-                @test get_static_components(system) == (buses, gens, branches)
+                @test get_operating_reserve_requirements(system) == Dictionary([1, 2, -9999], [1.0, 2.0, 3.0])
+                @test get_good_utility_requirements(system) == Dictionary([1, 2, -9999], [1.0, 4.0, 3.0])
                 @test get_buses(system) == buses
                 @test get_generators(system) == gens
                 @test get_branches(system) == branches
@@ -147,16 +151,10 @@
                 @test get_regmin(system) == fake_gen_ts
                 @test get_regmax(system) == fake_gen_ts
 
-                @test get_regulation(system) == fake_gen_ts
-                @test get_spinning(system) == fake_gen_ts
-                @test get_supplemental_on(system) == fake_gen_ts
-                @test get_supplemental_off(system) == fake_gen_ts
-
-                # !!!! define some gens as non-providers?
-                @test get_regulation_providers(system) == gen_ids
-                @test get_spinning_providers(system) == gen_ids
-                @test get_sup_on_providers(system) == gen_ids
-                @test get_sup_off_providers(system) == gen_ids
+                @test skipmissing(get_regulation(system)) == skipmissing(fake_services_ts)
+                @test skipmissing(get_spinning(system)) == skipmissing(fake_services_ts)
+                @test skipmissing(get_supplemental_on(system)) == skipmissing(fake_services_ts)
+                @test skipmissing(get_supplemental_off(system)) == skipmissing(fake_services_ts)
 
                 gens_by_zone = gens_per_zone(da_system)
                 @test issetequal(keys(gens_by_zone), [1, FullNetworkSystems.MARKET_WIDE_ZONE])
@@ -185,8 +183,8 @@
             end
 
             @testset "SystemRT only accessors" begin
-                @test get_commitment_status(rt_system) == fake_bool_ts
-                @test get_commitment_reg_status(rt_system) == fake_bool_ts
+                @test get_commitment(rt_system) == fake_bool_ts
+                @test get_regulation_commitment(rt_system) == fake_bool_ts
             end
         end
     end
