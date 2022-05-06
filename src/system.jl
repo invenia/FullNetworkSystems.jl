@@ -342,7 +342,7 @@ end
 "Returns a `Dictionary` with zonal operating reserve requirements indexed by zone number."
 function get_operating_reserve_requirements(system::System)
     return map(system.zones) do zone
-        sum([zone.reg, zone.spin])
+        sum([zone.reg, zone.spin, zone.sup_on, zone.sup_off])
     end
 end
 
