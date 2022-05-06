@@ -15,7 +15,7 @@ struct Zone
     regulation::Float64
     "Zonal operating reserve requirement (regulation + spinning + supplemental) (MW)"
     operating_reserve::Float64
-    "Zoneal good utility practice requirement (regulation + spinning) (MW)"
+    "Zonal good utility practice requirement (regulation + spinning) (MW)"
     good_utility::Float64
 end
 
