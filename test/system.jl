@@ -127,7 +127,7 @@
                 @test get_datetimes(system) == datetimes
                 @test get_zones(system) == zones
                 @test get_regulation_requirements(system) == Dictionary([1, 2, -9999], [1.0, 4.0, 3.0])
-                @test get_operating_reserve_requirements(system) == Dictionary([1, 2, -9999], [2.0, 6.0, 6.0])
+                @test get_operating_reserve_requirements(system) == Dictionary([1, 2, -9999], [4.0, 12.0, 12.0])
                 @test get_static_components(system) == (buses, gens, branches)
                 @test get_buses(system) == buses
                 @test get_generators(system) == gens
@@ -140,17 +140,17 @@
                 @test get_lodf(system) == LODF
 
                 @test get_initial_generation(system) == fake_vec_ts
-                @test get_load_timeseries(system) == fake_gen_ts
-                @test get_offer_curve_timeseries(system) == fake_offer_ts
-                @test get_pmin_timeseries(system) == fake_gen_ts
-                @test get_pmax_timeseries(system) == fake_gen_ts
-                @test get_regmin_timeseries(system) == fake_gen_ts
-                @test get_regmax_timeseries(system) == fake_gen_ts
+                @test get_load(system) == fake_gen_ts
+                @test get_offer_curve(system) == fake_offer_ts
+                @test get_pmin(system) == fake_gen_ts
+                @test get_pmax(system) == fake_gen_ts
+                @test get_regmin(system) == fake_gen_ts
+                @test get_regmax(system) == fake_gen_ts
 
-                @test get_regulation_timeseries(system) == fake_gen_ts
-                @test get_spinning_timeseries(system) == fake_gen_ts
-                @test get_supplemental_on_timeseries(system) == fake_gen_ts
-                @test get_supplemental_off_timeseries(system) == fake_gen_ts
+                @test get_regulation(system) == fake_gen_ts
+                @test get_spinning(system) == fake_gen_ts
+                @test get_supplemental_on(system) == fake_gen_ts
+                @test get_supplemental_off(system) == fake_gen_ts
 
                 # !!!! define some gens as non-providers?
                 @test get_regulation_providers(system) == gen_ids
@@ -176,12 +176,12 @@
                 @test get_decs_per_bus(da_system) == decs_per_bus
                 @test get_psds_per_bus(da_system) == psds_per_bus
 
-                @test get_bids_timeseries(da_system, :increment) == fake_offer_ts
-                @test get_bids_timeseries(da_system, :decrement) == fake_offer_ts
-                @test get_bids_timeseries(da_system, :price_sensitive_demand) == fake_offer_ts
+                @test get_bids(da_system, :increment) == fake_offer_ts
+                @test get_bids(da_system, :decrement) == fake_offer_ts
+                @test get_bids(da_system, :price_sensitive_demand) == fake_offer_ts
 
-                @test get_availability_timeseries(da_system) == fake_bool_ts
-                @test get_must_run_timeseries(da_system) == fake_bool_ts
+                @test get_availability(da_system) == fake_bool_ts
+                @test get_must_run(da_system) == fake_bool_ts
             end
 
             @testset "SystemRT only accessors" begin
