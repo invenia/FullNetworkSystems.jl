@@ -1,3 +1,4 @@
+const MARKET_WIDE_ZONE = -9999
 """
     $TYPEDEF
 
@@ -11,13 +12,11 @@ struct Zone
     "Zone number"
     number::Int64
     "Zonal regulation requirement (MW)"
-    reg::Float64
-    "Zonal spinning requirement (MW)"
-    spin::Float64
-    "Zonal supplemental on requirement (MW)"
-    sup_on::Float64
-    "Zonal supplemental off requirement (MW)"
-    sup_off::Float64
+    regulation::Float64
+    "Zonal operating reserve requirement (regulation + spinning + supplemental) (MW)"
+    operating_reserve::Float64
+    "Zonal good utility practice requirement (regulation + spinning) (MW)"
+    good_utility::Float64
 end
 
 ###### Static Component Types ######
@@ -125,14 +124,26 @@ struct GeneratorTimeSeries
     pmin::KeyedArray{Float64, 2}
     "Generator maximum output (MW)"
     pmax::KeyedArray{Float64, 2}
-    "Ancillary services regulation offer prices (\$ /MW)"
-    asm_regulation::KeyedArray{Float64, 2}
-    "Ancillary services spinning offer prices (\$ /MW)"
-    asm_spin::KeyedArray{Float64, 2}
-    "Ancillary services supplemental on offer prices (\$ /MW)"
-    asm_sup_on::KeyedArray{Float64, 2}
-    "Ancillary services supplemental off offer prices (\$ /MW)"
-    asm_sup_off::KeyedArray{Float64, 2}
+    """
+    Ancillary services regulation offer prices (\$ /MW). Generators not providing the service
+    will have `missing` offer data
+    """
+    asm_regulation::KeyedArray{Union{Missing, Float64}, 2}
+    """
+    Ancillary services spinning offer prices (\$ /MW). Generators not providing the service
+    will have `missing` offer data
+    """
+    asm_spin::KeyedArray{Union{Missing, Float64}, 2}
+    """
+    Ancillary services supplemental on offer prices (\$ /MW). Generators not providing the service
+    will have `missing` offer data
+    """
+    asm_sup_on::KeyedArray{Union{Missing, Float64}, 2}
+    """
+    Ancillary services supplemental off offer prices (\$ /MW). Generators not providing the service
+    will have `missing` offer data
+    """
+    asm_sup_off::KeyedArray{Union{Missing, Float64}, 2}
 end
 
 """
@@ -153,7 +164,7 @@ $TYPEDFIELDS
 struct GeneratorStatusDA <: GeneratorStatus
     "Hours each generator has been at its current status at the start of the day"
     hours_at_status::KeyedArray{Float64, 1}
-    "Flag indicating if generator is available to be committed in each hour"
+    "Flag indicating if the generator is available to be committed in each hour"
     availability::KeyedArray{Bool, 2}
     "Flag indicating if the generator must be committed in each hour"
     must_run::KeyedArray{Bool, 2}
@@ -168,9 +179,9 @@ Fields:
 $TYPEDFIELDS
 """
 struct GeneratorStatusRT <: GeneratorStatus
-    "Generator status indicated by a `Bool`"
+    "Generator commitment status indicated by a `Bool`"
     status::KeyedArray{Bool, 2}
-    "Generator regulation status indicated by a `Bool`"
+    "Generator regulation commitment status indicated by a `Bool`"
     status_regulation::KeyedArray{Bool, 2}
 end
 
@@ -223,12 +234,12 @@ struct SystemDA <: System
     by the keys of the `Dictionary`. Each entry is a `KeyedArray` with axis keys
     `branch names x branch on outage`
     """
-    LODF::Dictionary{String, KeyedArray{Float64, 2}}
+    lodf::Dictionary{String, KeyedArray{Float64, 2}}
     """
     Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
     `branch names x bus names`
     """
-    PTDF::KeyedArray{Float64, 2}
+    ptdf::KeyedArray{Float64, 2}
 
     # Generator related time series
     "Generator related time series data"
@@ -276,12 +287,12 @@ struct SystemRT <: System
     by the keys of the `Dictionary`. Each entry is a `KeyedArray` with axis keys
     `branch names x branch on outage`
     """
-    LODF::Dictionary{String, KeyedArray{Float64, 2}}
+    lodf::Dictionary{String, KeyedArray{Float64, 2}}
     """
     Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
     `branch names x bus names`
     """
-    PTDF::KeyedArray{Float64, 2}
+    ptdf::KeyedArray{Float64, 2}
 
     # Generator related time series
     "Generator related time series data"
@@ -312,57 +323,9 @@ function Base.show(io::IO, ::MIME"text/plain", system::T) where {T <: System}
             for name in fieldnames(type)
                 print(io, "$name, ")
             end
-        elseif type <: KeyedArray && name != :PTDF
+        elseif type <: KeyedArray && name != :ptdf
             print(io, "$name, ")
         end
     end
     return nothing
-end
-
-"""
-    get_datetimes(system)
-
-Extract datetimes from a `System`.
-"""
-function get_datetimes(system::System)
-    # use offer_curve axiskeys because all subtypes of System have offer_curve
-    return axiskeys(system.generator_time_series.offer_curve, 2)
-end
-
-"""
-    gens_per_zone(system::System)
-
-Returns a `Dict` with  keys of `Zone` numbers and values of generator names in that zone.
-"""
-function gens_per_zone(system::System)
-    gens_per_zone = Dict{Int, Vector{Int}}()
-    for gen in system.generators
-        if haskey(gens_per_zone, gen.zone)
-            push!(gens_per_zone[gen.zone], gen.unit_code)
-        else
-            gens_per_zone[gen.zone] = [gen.unit_code]
-        end
-    end
-    return gens_per_zone
-end
-
-"""
-    branches_by_breakpoints(system::System)
-
-Returns three vectors containing of the names of branches which have 0, 1, and 2 breakpoints.
-"""
-function branches_by_breakpoints(system::System)
-    zero_bp, one_bp, two_bp = String[], String[], String[]
-    for branch in system.branches
-        if branch.is_monitored
-            if all(branch.break_points .== 0.0)
-                push!(zero_bp, branch.name)
-            elseif last(branch.break_points) == 0.0
-                push!(one_bp, branch.name)
-            else
-                push!(two_bp, branch.name)
-            end
-        end
-    end
-    return zero_bp, one_bp, two_bp
 end
