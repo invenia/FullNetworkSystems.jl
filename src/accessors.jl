@@ -107,7 +107,7 @@ get_regulation_commitment(system::SystemRT) = system.generator_status.status_reg
 """
     gens_per_zone(system::System)
 
-Returns a `Dict` with  keys of `Zone` numbers and values of generator names in that zone.
+Returns a `Dict` with keys of `Zone` numbers and values of generator names in that zone.
 """
 function gens_per_zone(system::System)
     gens_per_zone = Dict{Int, Vector{Int}}()
