@@ -234,12 +234,12 @@ struct SystemDA <: System
     by the keys of the `Dictionary`. Each entry is a `KeyedArray` with axis keys
     `branch names x branch on outage`
     """
-    LODF::Dictionary{String, KeyedArray{Float64, 2}}
+    lodf::Dictionary{String, KeyedArray{Float64, 2}}
     """
     Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
     `branch names x bus names`
     """
-    PTDF::KeyedArray{Float64, 2}
+    ptdf::KeyedArray{Float64, 2}
 
     # Generator related time series
     "Generator related time series data"
@@ -287,12 +287,12 @@ struct SystemRT <: System
     by the keys of the `Dictionary`. Each entry is a `KeyedArray` with axis keys
     `branch names x branch on outage`
     """
-    LODF::Dictionary{String, KeyedArray{Float64, 2}}
+    lodf::Dictionary{String, KeyedArray{Float64, 2}}
     """
     Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
     `branch names x bus names`
     """
-    PTDF::KeyedArray{Float64, 2}
+    ptdf::KeyedArray{Float64, 2}
 
     # Generator related time series
     "Generator related time series data"
@@ -323,7 +323,7 @@ function Base.show(io::IO, ::MIME"text/plain", system::T) where {T <: System}
             for name in fieldnames(type)
                 print(io, "$name, ")
             end
-        elseif type <: KeyedArray && name != :PTDF
+        elseif type <: KeyedArray && name != :ptdf
             print(io, "$name, ")
         end
     end

@@ -68,11 +68,11 @@
         psds_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
         loads_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
 
-        LODF = Dictionary(
+        lodf = Dictionary(
             ["CONTIN_1"],
             [KeyedArray(rand(3, 1); branches=branch_names, branch=[first(branch_names)])]
         )
-        PTDF = KeyedArray(rand(3, 3); row=branch_names, col=bus_names)
+        ptdf = KeyedArray(rand(3, 3); row=branch_names, col=bus_names)
 
         generator_time_series = GeneratorTimeSeries(
             fake_vec_ts,
@@ -97,8 +97,8 @@
             buses,
             gens,
             branches,
-            LODF,
-            PTDF,
+            lodf,
+            ptdf,
             generator_time_series,
             da_gen_status,
             fake_gen_ts,
@@ -116,8 +116,8 @@
             buses,
             gens,
             branches,
-            LODF,
-            PTDF,
+            lodf,
+            ptdf,
             generator_time_series,
             rt_gen_status,
             fake_gen_ts
@@ -140,8 +140,8 @@
                 @test get_gens_per_bus(system) == gens_per_bus
                 @test get_loads_per_bus(system) == loads_per_bus
 
-                @test get_ptdf(system) == PTDF
-                @test get_lodf(system) == LODF
+                @test get_ptdf(system) == ptdf
+                @test get_lodf(system) == lodf
 
                 @test get_initial_generation(system) == fake_vec_ts
                 @test get_load(system) == fake_gen_ts
