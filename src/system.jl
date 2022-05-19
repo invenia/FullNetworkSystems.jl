@@ -73,8 +73,8 @@ end
 """
     $TYPEDEF
 
-Type for static branch attributes.  Branches may have between 0 and 2 break points
-which is why the `break_points` and `penalties` fields contain variable length `Tuple`s.
+Type for static non-transformer branch attributes.  Branches may have between 0 and 2 break
+points which is why the `break_points` and `penalties` fields contain variable length `Tuple`s.
 
 Fields:
 $TYPEDFIELDS
@@ -99,6 +99,35 @@ struct Branch
     break_points::Tuple{Float64, Float64}
     "Price penalties for each of the break points of the branch (\$)"
     penalties::Tuple{Float64, Float64}
+    "Boolean indicating whether the branch is a transformer"
+    is_transformer::Bool
+    "Resistance of the transformer (Ohm)"
+    resistance::Union{Missing, Float64}
+    "Ratio between the nominal winding one and two voltages of the transformer"
+    tap::Union{Missing, Float64}
+    "Phase shift angle (degrees)"
+    angle::Union{Missing, Float64}
+end
+
+"""
+Constructor for a non-transformer branch which sets `is_transformer` to `false` and
+transformer specific variables to `missing`.
+"""
+function Branch(name, to_bus, from_bus, rate_a, rate_b, is_monitored, break_points, penalities)
+    return Branch(
+        name,
+        to_bus,
+        from_bus,
+        rate_a,
+        rate_b,
+        is_monitored,
+        break_points,
+        penalities,
+        false,
+        missing,
+        missing,
+        missing
+    )
 end
 
 ###### Time Series types ######

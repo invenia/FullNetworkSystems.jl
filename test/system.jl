@@ -14,7 +14,7 @@
         ids=gen_ids, datetimes=datetimes
     )
 
-    branch_names = string.([1, 2, 3])
+    branch_names = string.([1, 2, 3, 4])
     bus_names = ["A", "B", "C"]
 
     @testset "Zone" begin
@@ -35,6 +35,12 @@
     @testset "Branch" begin
         branch1 = Branch("1", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0))
         @test branch1 isa Branch
+        @test !branch1.is_transformer
+
+        transformer1 = Branch(
+            "1", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), true, 1.0, 1.0, 30.0
+        )
+        @test transformer1 isa Branch
     end
 
     @testset "System" begin
@@ -59,6 +65,9 @@
                 Branch("1", "A", "B", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0)),
                 Branch("2", "B", "C", 10.0, 10.0, false, (100.0, 0.0), (5.0, 0.0)),
                 Branch("3", "C", "A", 10.0, 10.0, true, (0.0, 0.0), (0.0, 0.0)),
+                Branch(
+                    "4", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), true, 1.0, 1.0, 30.0
+                )
             ]
         )
 
@@ -70,9 +79,9 @@
 
         lodf = Dictionary(
             ["CONTIN_1"],
-            [KeyedArray(rand(3, 1); branches=branch_names, branch=[first(branch_names)])]
+            [KeyedArray(rand(4, 1); branches=branch_names, branch=[first(branch_names)])]
         )
-        ptdf = KeyedArray(rand(3, 3); row=branch_names, col=bus_names)
+        ptdf = KeyedArray(rand(4, 3); row=branch_names, col=bus_names)
 
         generator_time_series = GeneratorTimeSeries(
             fake_vec_ts,
@@ -136,6 +145,10 @@
                 @test get_buses(system) == buses
                 @test get_generators(system) == gens
                 @test get_branches(system) == branches
+                @test get_lines(system) == Dictionary(
+                    ["1", "2", "3"], [branches["1"], branches["2"], branches["3"]]
+                )
+                @test get_transformers(system) == Dictionary(["4"], [branches["4"]])
 
                 @test get_gens_per_bus(system) == gens_per_bus
                 @test get_loads_per_bus(system) == loads_per_bus
@@ -165,7 +178,7 @@
                 zero_bp, one_bp, two_bp = branches_by_breakpoints(da_system)
                 @test zero_bp == ["3"]
                 @test one_bp == String[] #unmonitored
-                @test two_bp == ["1"]
+                @test two_bp == ["1", "4"]
             end
 
             @testset "SystemDA only accessors" begin

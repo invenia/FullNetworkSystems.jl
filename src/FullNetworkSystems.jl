@@ -10,7 +10,7 @@ export System, SystemDA, SystemRT
 export Zone, Generator, Bus, Branch
 export GeneratorTimeSeries, GeneratorStatus, GeneratorStatusDA, GeneratorStatusRT
 export gens_per_zone, branches_by_breakpoints, get_datetimes
-export get_zones, get_buses, get_generators, get_branches
+export get_zones, get_buses, get_generators, get_branches, get_lines, get_transformers
 export get_regulation_requirements, get_operating_reserve_requirements, get_good_utility_requirements
 export get_gens_per_bus, get_loads_per_bus, get_incs_per_bus, get_decs_per_bus, get_psds_per_bus
 export get_ptdf, get_lodf
