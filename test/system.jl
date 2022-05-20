@@ -33,12 +33,16 @@
     end
 
     @testset "Branch" begin
-        branch1 = Branch("1", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0))
+        branch1 = Branch("1", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0)
         @test branch1 isa Branch
         @test !branch1.is_transformer
 
+        branch2 = Branch("2", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0))
+        @test branch2 isa Branch
+        @test !branch2.is_transformer
+
         transformer1 = Branch(
-            "1", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), true, 1.0, 1.0, 30.0
+            "1", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0, true, 0.5, 30.0
         )
         @test transformer1 isa Branch
     end
@@ -62,11 +66,11 @@
         branches = Dictionary(
             branch_names,
             [
-                Branch("1", "A", "B", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0)),
-                Branch("2", "B", "C", 10.0, 10.0, false, (100.0, 0.0), (5.0, 0.0)),
-                Branch("3", "C", "A", 10.0, 10.0, true, (0.0, 0.0), (0.0, 0.0)),
+                Branch("1", "A", "B", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0),
+                Branch("2", "B", "C", 10.0, 10.0, false, (100.0, 0.0), (5.0, 0.0), 1.0, 1.0),
+                Branch("3", "C", "A", 10.0, 10.0, true, (0.0, 0.0), (0.0, 0.0), 1.0, 1.0),
                 Branch(
-                    "4", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), true, 1.0, 1.0, 30.0
+                    "4", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0, true, 0.5, 30.0
                 )
             ]
         )

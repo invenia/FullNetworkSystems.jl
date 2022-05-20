@@ -99,13 +99,15 @@ struct Branch
     break_points::Tuple{Float64, Float64}
     "Price penalties for each of the break points of the branch (\$)"
     penalties::Tuple{Float64, Float64}
+    "Resistance of the transformer (Ohm)"
+    resistance::Float64
+    "Reactance of the transformer or branch (Ohm)"
+    reactance::Float64
     "Boolean indicating whether the branch is a transformer"
     is_transformer::Bool
-    "Resistance of the transformer (Ohm)"
-    resistance::Union{Missing, Float64}
     "Ratio between the nominal winding one and two voltages of the transformer"
     tap::Union{Missing, Float64}
-    "Phase shift angle (degrees)"
+    "Phase shift angle (radians)"
     angle::Union{Missing, Float64}
 end
 
@@ -113,7 +115,9 @@ end
 Constructor for a non-transformer branch which sets `is_transformer` to `false` and
 transformer specific variables to `missing`.
 """
-function Branch(name, to_bus, from_bus, rate_a, rate_b, is_monitored, break_points, penalities)
+function Branch(
+    name, to_bus, from_bus, rate_a, rate_b, is_monitored, break_points, penalities, resistance, reactance
+)
     return Branch(
         name,
         to_bus,
@@ -123,8 +127,29 @@ function Branch(name, to_bus, from_bus, rate_a, rate_b, is_monitored, break_poin
         is_monitored,
         break_points,
         penalities,
+        resistance,
+        reactance,
         false,
         missing,
+        missing
+    )
+end
+
+function Branch(
+    name, to_bus, from_bus, rate_a, rate_b, is_monitored, break_points, penalities
+)
+    return Branch(
+        name,
+        to_bus,
+        from_bus,
+        rate_a,
+        rate_b,
+        is_monitored,
+        break_points,
+        penalities,
+        0.0,
+        0.0,
+        false,
         missing,
         missing
     )
