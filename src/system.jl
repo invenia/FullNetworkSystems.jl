@@ -99,9 +99,9 @@ struct Branch
     break_points::Tuple{Float64, Float64}
     "Price penalties for each of the break points of the branch (\$)"
     penalties::Tuple{Float64, Float64}
-    "Resistance of the transformer (Ohm)"
+    "Resistance of the transformer (pu)"
     resistance::Float64
-    "Reactance of the transformer or branch (Ohm)"
+    "Reactance of the transformer or branch (pu)"
     reactance::Float64
     "Boolean indicating whether the branch is a transformer"
     is_transformer::Bool
@@ -116,7 +116,7 @@ Constructor for a non-transformer branch which sets `is_transformer` to `false` 
 transformer specific variables to `missing`.
 """
 function Branch(
-    name, to_bus, from_bus, rate_a, rate_b, is_monitored, break_points, penalities, resistance, reactance
+    name, to_bus, from_bus, rate_a, rate_b, is_monitored, break_points, penalities, resistance=0.0, reactance=0.0, is_transformer=false, tap=missing, angle=missing
 )
     return Branch(
         name,
@@ -129,29 +129,9 @@ function Branch(
         penalities,
         resistance,
         reactance,
-        false,
-        missing,
-        missing
-    )
-end
-
-function Branch(
-    name, to_bus, from_bus, rate_a, rate_b, is_monitored, break_points, penalities
-)
-    return Branch(
-        name,
-        to_bus,
-        from_bus,
-        rate_a,
-        rate_b,
-        is_monitored,
-        break_points,
-        penalities,
-        0.0,
-        0.0,
-        false,
-        missing,
-        missing
+        is_transformer,
+        tap,
+        angle
     )
 end
 
