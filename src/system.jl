@@ -116,8 +116,52 @@ Constructor for a non-transformer branch which sets `is_transformer` to `false` 
 transformer specific variables to `missing`.
 """
 function Branch(
-    name, to_bus, from_bus, rate_a, rate_b, is_monitored, break_points, penalities, resistance=0.0, reactance=0.0, is_transformer=false, tap=missing, angle=missing
+    name,
+    to_bus,
+    from_bus,
+    rate_a,
+    rate_b,
+    is_monitored,
+    break_points,
+    penalities,
+    resistance=0.0,
+    reactance=0.0
 )
+    tap = missing
+    angle = missing
+    is_transformer = false
+    return Branch(
+        name,
+        to_bus,
+        from_bus,
+        rate_a,
+        rate_b,
+        is_monitored,
+        break_points,
+        penalities,
+        resistance,
+        reactance,
+        is_transformer,
+        tap,
+        angle
+    )
+end
+
+function Branch(
+    name,
+    to_bus,
+    from_bus,
+    rate_a,
+    rate_b,
+    is_monitored,
+    break_points,
+    penalities,
+    resistance,
+    reactance,
+    tap::Float64,
+    angle::Float64
+)
+    is_transformer = true
     return Branch(
         name,
         to_bus,
