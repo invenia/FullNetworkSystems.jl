@@ -14,9 +14,6 @@
         ids=gen_ids, datetimes=datetimes
     )
 
-    branch_names = string.([1, 2, 3, 4])
-    bus_names = ["A", "B", "C"]
-
     @testset "Zone" begin
         zone1 = Zone(1, 1.0, 1.0, 1.0)
         @test zone1 isa Zone
@@ -58,11 +55,13 @@
         end
         gens = Dictionary(gen_ids, gen_types)
 
+        bus_names = ["A", "B", "C"]
         bus_types = map(bus_names) do name
             Bus(name, 100.0)
         end
         buses = Dictionary(bus_names, bus_types)
 
+        branch_names = string.([1,2,3,4])
         branches = Dictionary(
             branch_names,
             [

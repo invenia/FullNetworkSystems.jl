@@ -73,7 +73,7 @@ end
 """
     $TYPEDEF
 
-Type for static non-transformer branch attributes.  Branches may have between 0 and 2 break
+Type for static branch attributes.  Branches may have between 0 and 2 break
 points which is why the `break_points` and `penalties` fields contain variable length `Tuple`s.
 
 Fields:
@@ -86,9 +86,9 @@ struct Branch
     to_bus::BusName
     "Name of the bus the branch goes from"
     from_bus::BusName
-    "Power flow limit for the base case (MVA)"
+    "Power flow limit for the base case (pu)"
     rate_a::Float64
-    "Power flow limit for contingency scenario (MVA)"
+    "Power flow limit for contingency scenario (pu)"
     rate_b::Float64
     "Boolean defining whether the branch is monitored"
     is_monitored::Bool
@@ -112,8 +112,18 @@ struct Branch
 end
 
 """
-Constructor for a non-transformer branch which sets `is_transformer` to `false` and
-transformer specific variables to `missing`.
+Constructors for a `Branch`.  The user has the option to define a `Branch` as a line e.g.
+```
+line1 = Branch("1", "A", "B", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0)
+```
+where the final two values (`resistance` and `reactance`) can be left unspecified.  Or the
+user can define a `Branch`` as a transformer:
+```
+trnasformer1 = Branch(
+    "4", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0, 0.5, 30.0
+)
+```
+where two extra parameters are provided as the end representing `tap` and `angle`.
 """
 function Branch(
     name,
