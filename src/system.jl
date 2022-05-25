@@ -99,9 +99,9 @@ struct Branch
     break_points::Tuple{Float64, Float64}
     "Price penalties for each of the break points of the branch (\$)"
     penalties::Tuple{Float64, Float64}
-    "Resistance of the transformer (pu)"
+    "Resistance of the branch (pu)"
     resistance::Float64
-    "Reactance of the transformer or branch (pu)"
+    "Reactance of the branch (pu)"
     reactance::Float64
     "Boolean indicating whether the branch is a transformer"
     is_transformer::Bool
