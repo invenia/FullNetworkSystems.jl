@@ -73,8 +73,8 @@ end
 """
     $TYPEDEF
 
-Type for static branch attributes.  Branches may have between 0 and 2 break points
-which is why the `break_points` and `penalties` fields contain variable length `Tuple`s.
+Type for static branch attributes.  Branches may have between 0 and 2 break
+points which is why the `break_points` and `penalties` fields contain variable length `Tuple`s.
 
 Fields:
 $TYPEDFIELDS
@@ -86,9 +86,9 @@ struct Branch
     to_bus::BusName
     "Name of the bus the branch goes from"
     from_bus::BusName
-    "Power flow limit for the base case (MVA)"
+    "Power flow limit for the base case (pu)"
     rate_a::Float64
-    "Power flow limit for contingency scenario (MVA)"
+    "Power flow limit for contingency scenario (pu)"
     rate_b::Float64
     "Boolean defining whether the branch is monitored"
     is_monitored::Bool
@@ -99,6 +99,94 @@ struct Branch
     break_points::Tuple{Float64, Float64}
     "Price penalties for each of the break points of the branch (\$)"
     penalties::Tuple{Float64, Float64}
+    "Resistance of the branch (pu)"
+    resistance::Float64
+    "Reactance of the branch (pu)"
+    reactance::Float64
+    "Boolean indicating whether the branch is a transformer"
+    is_transformer::Bool
+    "Ratio between the nominal winding one and two voltages of the transformer"
+    tap::Union{Missing, Float64}
+    "Phase shift angle (radians)"
+    angle::Union{Missing, Float64}
+end
+
+"""
+Constructors for a `Branch`.  The user has the option to define a `Branch` as a line e.g.
+```
+line1 = Branch("1", "A", "B", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0)
+```
+where the final two values (`resistance` and `reactance`) can be left unspecified.  Or the
+user can define a `Branch`` as a transformer:
+```
+trnasformer1 = Branch(
+    "4", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0, 0.5, 30.0
+)
+```
+where two extra parameters are provided as the end representing `tap` and `angle`.
+"""
+function Branch(
+    name,
+    to_bus,
+    from_bus,
+    rate_a,
+    rate_b,
+    is_monitored,
+    break_points,
+    penalities,
+    resistance=0.0,
+    reactance=0.0
+)
+    tap = missing
+    angle = missing
+    is_transformer = false
+    return Branch(
+        name,
+        to_bus,
+        from_bus,
+        rate_a,
+        rate_b,
+        is_monitored,
+        break_points,
+        penalities,
+        resistance,
+        reactance,
+        is_transformer,
+        tap,
+        angle
+    )
+end
+
+function Branch(
+    name,
+    to_bus,
+    from_bus,
+    rate_a,
+    rate_b,
+    is_monitored,
+    break_points,
+    penalities,
+    resistance,
+    reactance,
+    tap::Float64,
+    angle::Float64
+)
+    is_transformer = true
+    return Branch(
+        name,
+        to_bus,
+        from_bus,
+        rate_a,
+        rate_b,
+        is_monitored,
+        break_points,
+        penalities,
+        resistance,
+        reactance,
+        is_transformer,
+        tap,
+        angle
+    )
 end
 
 ###### Time Series types ######

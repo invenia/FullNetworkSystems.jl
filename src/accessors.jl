@@ -37,6 +37,10 @@ get_buses(system::System) = system.buses
 get_generators(system::System) = system.generators
 "Returns a `Dictionary` of `Branch` objects in the `System` indexed by branch name."
 get_branches(system::System) = system.branches
+"Returns a `Dictionary` of branches that are not transformers in the `System` indexed by name."
+get_lines(system::System) = filter(br -> !br.is_transformer, system.branches)
+"Returns a `Dictionary` of transformers in the `System` indexed by name."
+get_transformers(system::System) = filter(br -> br.is_transformer, system.branches)
 
 "Returns a `Dictionary` of unit codes at each bus."
 get_gens_per_bus(system::System) = system.gens_per_bus
