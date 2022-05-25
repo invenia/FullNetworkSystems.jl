@@ -52,28 +52,28 @@ get_ptdf(system::System) = system.ptdf
 "Returns the line outage distribution factor matrix of the system for a set of contingencies."
 get_lodf(system::System) = system.lodf
 
-"Returns the generation of the generator at the start of the time period (MW)"
+"Returns the generation of the generator at the start of the time period (pu)"
 get_initial_generation(system::System) = system.generator_time_series.initial_generation
 "Returns time series data of the load in the system"
 get_load(system::System) = system.loads
 "Returns time series data of the generator offer curves"
 get_offer_curve(system::System) = system.generator_time_series.offer_curve
-"Returns time series data of minimum generator output (MW)"
+"Returns time series data of minimum generator output (pu)"
 get_pmin(system::System) = system.generator_time_series.pmin
-"Returns time series data of maximum generator output (MW)"
+"Returns time series data of maximum generator output (pu)"
 get_pmax(system::System) = system.generator_time_series.pmax
-"Returns time series data of minimum generator output in the ancillary services market (MW)"
+"Returns time series data of minimum generator output in the ancillary services market (pu)"
 get_regmin(system::System) = system.generator_time_series.regulation_min
-"Returns time series data of maximum generator output in the ancillary services market (MW)"
+"Returns time series data of maximum generator output in the ancillary services market (pu)"
 get_regmax(system::System) = system.generator_time_series.regulation_max
 
-"Returns time series data of offer prices for ancillary servives regulation (\$ /MW)"
+"Returns time series data of offer prices for ancillary servives regulation (\$ /pu)"
 get_regulation(system::System) = system.generator_time_series.asm_regulation
-"Returns time series data of offer prices for ancillary servives spinning (\$ /MW)"
+"Returns time series data of offer prices for ancillary servives spinning (\$ /pu)"
 get_spinning(system::System) = system.generator_time_series.asm_spin
-"Returns time series data of offer prices for ancillary servives supplemental on (\$ /MW)"
+"Returns time series data of offer prices for ancillary servives supplemental on (\$ /pu)"
 get_supplemental_on(system::System) = system.generator_time_series.asm_sup_on
-"Returns time series data of offer prices for ancillary servives supplemental off (\$ /MW)"
+"Returns time series data of offer prices for ancillary servives supplemental off (\$ /pu)"
 get_supplemental_off(system::System) = system.generator_time_series.asm_sup_off
 
 "Returns a flag indicating whether each generator was on at the start of the day."

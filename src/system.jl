@@ -3,7 +3,8 @@ const MARKET_WIDE_ZONE = -9999
     $TYPEDEF
 
 Type defining a market zone.  The `Zone` is identified by a number.  The other fields contain
-the service requirements for the zone.
+the service requirements for the zone.  Requirements are given in `pu` assuming a base power
+of 100MW.
 
 Fields:
 $TYPEDFIELDS
@@ -11,11 +12,11 @@ $TYPEDFIELDS
 struct Zone
     "Zone number"
     number::Int64
-    "Zonal regulation requirement (MW)"
+    "Zonal regulation requirement (pu)"
     regulation::Float64
-    "Zonal operating reserve requirement (regulation + spinning + supplemental) (MW)"
+    "Zonal operating reserve requirement (regulation + spinning + supplemental) (pu)"
     operating_reserve::Float64
-    "Zonal good utility practice requirement (regulation + spinning) (MW)"
+    "Zonal good utility practice requirement (regulation + spinning) (pu)"
     good_utility::Float64
 end
 
@@ -27,7 +28,7 @@ const BranchName = InlineString31
     $TYPEDEF
 
 Type for static generator attribute (i.e. things that describe a generator that are not time
-series data).
+series data).  Parameters given in `pu` assume a base power of 100MW.
 
 Fields:
 $TYPEDFIELDS
@@ -47,9 +48,9 @@ struct Generator
     min_uptime::Float64
     "Minimum time the generator has to be off for (hours)"
     min_downtime::Float64
-    "Rate at which the generator can increase generation (MW/minute)"
+    "Rate at which the generator can increase generation (pu/minute)"
     ramp_up::Float64
-    "Rate at which the generator can decrease generation (MW/minute)"
+    "Rate at which the generator can decrease generation (pu/minute)"
     ramp_down::Float64
     "Symbol describing the technology of the generator"
     technology::Symbol
@@ -195,40 +196,41 @@ end
     $TYPEDEF
 
 Generator related time series data that is needed for both the day-ahead and real-time formulations.
+Values given in `pu` assume a base power of 100MW.
 
 Fields:
 $TYPEDFIELDS
 """
 struct GeneratorTimeSeries
-    "Generation of the generator at the start of the time period (MW)"
+    "Generation of the generator at the start of the time period (pu)"
     initial_generation::KeyedArray{Float64, 1}
     "Generator offer curves. `KeyedArray` where the axis keys are `generator names x datetimes`"
     offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
-    "Generator minimum output in the ancillary services market (MW)"
+    "Generator minimum output in the ancillary services market (pu)"
     regulation_min::KeyedArray{Float64, 2}
-    "Generator maximum output in the ancillary services market (MW)"
+    "Generator maximum output in the ancillary services market (pu)"
     regulation_max::KeyedArray{Float64, 2}
-    "Generator minimum output (MW)"
+    "Generator minimum output (pu)"
     pmin::KeyedArray{Float64, 2}
-    "Generator maximum output (MW)"
+    "Generator maximum output (pu)"
     pmax::KeyedArray{Float64, 2}
     """
-    Ancillary services regulation offer prices (\$ /MW). Generators not providing the service
+    Ancillary services regulation offer prices (\$ /pu). Generators not providing the service
     will have `missing` offer data
     """
     asm_regulation::KeyedArray{Union{Missing, Float64}, 2}
     """
-    Ancillary services spinning offer prices (\$ /MW). Generators not providing the service
+    Ancillary services spinning offer prices (\$ /pu). Generators not providing the service
     will have `missing` offer data
     """
     asm_spin::KeyedArray{Union{Missing, Float64}, 2}
     """
-    Ancillary services supplemental on offer prices (\$ /MW). Generators not providing the service
+    Ancillary services supplemental on offer prices (\$ /pu). Generators not providing the service
     will have `missing` offer data
     """
     asm_sup_on::KeyedArray{Union{Missing, Float64}, 2}
     """
-    Ancillary services supplemental off offer prices (\$ /MW). Generators not providing the service
+    Ancillary services supplemental off offer prices (\$ /pu). Generators not providing the service
     will have `missing` offer data
     """
     asm_sup_off::KeyedArray{Union{Missing, Float64}, 2}
