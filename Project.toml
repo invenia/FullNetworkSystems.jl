@@ -13,7 +13,7 @@ InlineStrings = "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
 [compat]
 AxisKeys = "0.2"
 Dictionaries = "0.3"
-DocStringExtensions = "0.8"
+DocStringExtensions = "0.8, 0.9"
 InlineStrings = "1"
 julia = "1.6"
 
