@@ -23,6 +23,7 @@ end
 ###### Static Component Types ######
 const BusName = InlineString15
 const BranchName = InlineString31
+const BidName = InlineString31
 
 """
     $TYPEDEF
@@ -300,16 +301,16 @@ struct SystemDA <: System
     "`Dictionary` where the keys are bus names and the values are generator ids at that bus"
     gens_per_bus::Dictionary{BusName, Vector{Int}}
     "`Dictionary` where the keys are bus names and the values are increment bid ids at that bus"
-    incs_per_bus::Dictionary{BusName, Vector{String}}
+    incs_per_bus::Dictionary{BusName, Vector{BidName}}
     "`Dictionary` where the keys are bus names and the values are decrement bid ids at that bus"
-    decs_per_bus::Dictionary{BusName, Vector{String}}
+    decs_per_bus::Dictionary{BusName, Vector{BidName}}
     """
     `Dictionary` where the keys are bus names and the values are price sensitive demand bid
     ids at that bus
     """
-    psds_per_bus::Dictionary{BusName, Vector{String}}
+    psds_per_bus::Dictionary{BusName, Vector{BidName}}
     "`Dictionary` where the keys are bus names and the values are load ids at that bus"
-    loads_per_bus::Dictionary{BusName, Vector{String}}
+    loads_per_bus::Dictionary{BusName, Vector{BidName}}
 
     "Zones in the `System`, which will also include a `Zone` entry for the market wide zone"
     zones::Dictionary{Int, Zone}
@@ -362,7 +363,7 @@ struct SystemRT <: System
     "`Dictionary` where the keys are bus names and the values are generator ids at that bus"
     gens_per_bus::Dictionary{BusName, Vector{Int}}
     "`Dictionary` where the keys are bus names and the values are load ids at that bus"
-    loads_per_bus::Dictionary{BusName, Vector{String}}
+    loads_per_bus::Dictionary{BusName, Vector{BidName}}
 
     "Zones in the `System`, which will also include a `Zone` entry for the market wide zone"
     zones::Dictionary{Int, Zone}
