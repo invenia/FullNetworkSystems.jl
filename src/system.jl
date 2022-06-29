@@ -297,7 +297,7 @@ Subtype of a `System` for modelling the day-ahead market.
 Fields:
 $TYPEDFIELDS
 """
-struct SystemDA <: System
+mutable struct SystemDA <: System
     "`Dictionary` where the keys are bus names and the values are generator ids at that bus"
     gens_per_bus::Dictionary{BusName, Vector{Int}}
     "`Dictionary` where the keys are bus names and the values are increment bid ids at that bus"
@@ -330,7 +330,7 @@ struct SystemDA <: System
     Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
     `branch names x bus names`
     """
-    ptdf::KeyedArray{Float64, 2}
+    ptdf::Union{KeyedArray{Float64, 2}, Missing}
 
     # Generator related time series
     "Generator related time series data"
@@ -359,7 +359,7 @@ Subtype of a `System` for modelling the real-time market.
 Fields:
 $TYPEDFIELDS
 """
-struct SystemRT <: System
+mutable struct SystemRT <: System
     "`Dictionary` where the keys are bus names and the values are generator ids at that bus"
     gens_per_bus::Dictionary{BusName, Vector{Int}}
     "`Dictionary` where the keys are bus names and the values are load ids at that bus"
@@ -383,7 +383,7 @@ struct SystemRT <: System
     Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
     `branch names x bus names`
     """
-    ptdf::KeyedArray{Float64, 2}
+    ptdf::Union{KeyedArray{Float64, 2}, Missing}
 
     # Generator related time series
     "Generator related time series data"

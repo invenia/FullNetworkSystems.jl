@@ -182,6 +182,10 @@
                 @test zero_bp == ["3"]
                 @test one_bp == String[] #unmonitored
                 @test two_bp == ["1", "4"]
+
+                # Check that we can remove the PTDF
+                system.ptdf = missing
+                @test system.ptdf === missing
             end
 
             @testset "SystemDA only accessors" begin
