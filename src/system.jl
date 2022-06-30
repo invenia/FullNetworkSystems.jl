@@ -20,6 +20,8 @@ struct Zone
     good_utility::Float64
 end
 
+const Zones = Dictionary{Int, Zone}
+
 ###### Static Component Types ######
 const BusName = InlineString15
 const BranchName = InlineString31
@@ -57,6 +59,8 @@ struct Generator
     technology::Symbol
 end
 
+const Generators = Dictionary{Int, Generator}
+
 """
     $TYPEDEF
 
@@ -71,6 +75,8 @@ struct Bus
     "Base voltage (kV)"
     base_voltage::Float64
 end
+
+const Buses = Dictionary{BusName, Bus}
 
 """
     $TYPEDEF
@@ -112,6 +118,8 @@ struct Branch
     "Phase shift angle (radians)"
     angle::Union{Missing, Float64}
 end
+
+const Branches = Dictionary{BranchName, Branch}
 
 """
 Constructors for a `Branch`.  The user has the option to define a `Branch` as a line e.g.
