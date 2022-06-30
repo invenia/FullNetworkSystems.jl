@@ -1,4 +1,6 @@
 const MARKET_WIDE_ZONE = -9999
+const BidName = InlineString31
+const ZoneNum = Int64
 """
     $TYPEDEF
 
@@ -11,7 +13,7 @@ $TYPEDFIELDS
 """
 struct Zone
     "Zone number"
-    number::Int64
+    number::ZoneNum
     "Zonal regulation requirement (pu)"
     regulation::Float64
     "Zonal operating reserve requirement (regulation + spinning + supplemental) (pu)"
@@ -19,12 +21,9 @@ struct Zone
     "Zonal good utility practice requirement (regulation + spinning) (pu)"
     good_utility::Float64
 end
+const Zones = Dictionary{ZoneNum, Zone}
 
-###### Static Component Types ######
-const BusName = InlineString15
-const BranchName = InlineString31
-const BidName = InlineString31
-
+const UnitCode = Int64
 """
     $TYPEDEF
 
@@ -36,7 +35,7 @@ $TYPEDFIELDS
 """
 struct Generator
     "Generator id/unit code"
-    unit_code::Int
+    unit_code::UnitCode
     "Number of the zone the generator is located in"
     zone::Int
     "Cost of turning on the generator (\$)"
@@ -56,7 +55,9 @@ struct Generator
     "Symbol describing the technology of the generator"
     technology::Symbol
 end
+const Generators = Dictionary{UnitCode, Generator}
 
+const BusName = InlineString15
 """
     $TYPEDEF
 
@@ -71,7 +72,9 @@ struct Bus
     "Base voltage (kV)"
     base_voltage::Float64
 end
+const Buses = Dictionary{BusName, Bus}
 
+const BranchName = InlineString31
 """
     $TYPEDEF
 
@@ -112,6 +115,7 @@ struct Branch
     "Phase shift angle (radians)"
     angle::Union{Missing, Float64}
 end
+const Branches = Dictionary{BranchName, Branch}
 
 """
 Constructors for a `Branch`.  The user has the option to define a `Branch` as a line e.g.
@@ -313,13 +317,13 @@ mutable struct SystemDA <: System
     loads_per_bus::Dictionary{BusName, Vector{BidName}}
 
     "Zones in the `System`, which will also include a `Zone` entry for the market wide zone"
-    zones::Dictionary{Int, Zone}
+    zones::Zones
     "Buses in the `System` indexed by bus name"
-    buses::Dictionary{BusName, Bus}
+    buses::Buses
     "Generators in the `System` indexed by unit code"
-    generators::Dictionary{Int, Generator}
+    generators::Generators
     "Branches in the `System` indexed by branch name"
-    branches::Dictionary{BranchName, Branch}
+    branches::Branches
     """
     The line outage distribution factor matrix of the system for a set of contingencies given
     by the keys of the `Dictionary`. Each entry is a `KeyedArray` with axis keys
@@ -366,13 +370,13 @@ mutable struct SystemRT <: System
     loads_per_bus::Dictionary{BusName, Vector{BidName}}
 
     "Zones in the `System`, which will also include a `Zone` entry for the market wide zone"
-    zones::Dictionary{Int, Zone}
+    zones::Zones
     "Buses in the `System` indexed by bus name"
-    buses::Dictionary{BusName, Bus}
+    buses::Buses
     "Generators in the `System` indexed by unit code"
-    generators::Dictionary{Int, Generator}
+    generators::Generators
     "Branches in the `System` indexed by branch name"
-    branches::Dictionary{BranchName, Branch}
+    branches::Branches
     """
     The line outage distribution factor matrix of the system for a set of contingencies given
     by the keys of the `Dictionary`. Each entry is a `KeyedArray` with axis keys
