@@ -170,7 +170,6 @@
                 rate_a=50.0,
                 rate_b=55.0,
                 is_monitored=true,
-                is_transformer=false,
                 break_points=(1.0, 2.0),
                 penalties=(3.0, 4.0),
                 resistance=1.0,
@@ -178,6 +177,7 @@
             )
             @test branch_kws isa Branch
             @test branch_kws.is_monitored
+            @test !branch_kws.is_transformer
 
             gen_ts_kws = GeneratorTimeSeries(
                 initial_generation=fake_vec_ts,

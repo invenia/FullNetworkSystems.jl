@@ -85,7 +85,7 @@ points which is why the `break_points` and `penalties` fields contain variable l
 Fields:
 $TYPEDFIELDS
 """
-Base.@kwdef struct Branch
+struct Branch
     "Branch long name"
     name::BranchName
     "Name of the bus the branch goes to"
@@ -140,7 +140,7 @@ function Branch(
     rate_b,
     is_monitored,
     break_points,
-    penalities,
+    penalties,
     resistance=0.0,
     reactance=0.0
 )
@@ -155,7 +155,7 @@ function Branch(
         rate_b,
         is_monitored,
         break_points,
-        penalities,
+        penalties,
         resistance,
         reactance,
         is_transformer,
@@ -172,7 +172,7 @@ function Branch(
     rate_b,
     is_monitored,
     break_points,
-    penalities,
+    penalties,
     resistance,
     reactance,
     tap::Float64,
@@ -187,7 +187,39 @@ function Branch(
         rate_b,
         is_monitored,
         break_points,
-        penalities,
+        penalties,
+        resistance,
+        reactance,
+        is_transformer,
+        tap,
+        angle
+    )
+end
+
+function Branch(;
+    name,
+    to_bus,
+    from_bus,
+    rate_a,
+    rate_b,
+    is_monitored,
+    break_points,
+    penalties,
+    resistance,
+    reactance,
+    is_transformer=false,
+    tap=missing,
+    angle=missing
+)
+    return Branch(
+        name,
+        to_bus,
+        from_bus,
+        rate_a,
+        rate_b,
+        is_monitored,
+        break_points,
+        penalties,
         resistance,
         reactance,
         is_transformer,
