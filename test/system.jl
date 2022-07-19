@@ -142,7 +142,7 @@
                 number=1, regulation=10.0, operating_reserve=20.0, good_utility=5.0
             )
             @test zone_kws isa Zone
-            @test zone.regulation == 10.0
+            @test zone_kws.regulation == 10.0
 
             generator_kws = Generator(
                 unit_code=1,
@@ -170,6 +170,7 @@
                 rate_a=50.0,
                 rate_b=55.0,
                 is_monitored=true,
+                is_transformer=false,
                 break_points=(1.0, 2.0),
                 penalties=(3.0, 4.0),
                 resistance=1.0,
