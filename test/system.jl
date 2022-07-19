@@ -136,6 +136,117 @@
         )
         @test rt_system isa SystemRT
 
+
+        @testset "Constructors using keywords" begin
+            zone_kws = Zone(
+                number=1, regulation=10.0, operating_reserve=20.0, good_utility=5.0
+            )
+            @test zone_kws isa Zone
+            @test zone.regulation == 10.0
+
+            generator_kws = Generator(
+                unit_code=1,
+                zone=1,
+                startup_cost=10.0,
+                shutdown_cost=5.0,
+                no_load_cost=1.0,
+                min_uptime=2.0,
+                min_downtime=1.0,
+                ramp_up=0.2,
+                ramp_down=0.4,
+                technology=:foo
+            )
+            @test generator_kws isa Generator
+            @test generator_kws.technology == :foo
+
+            bus_kws = Bus(name="foo", base_voltage=69.0)
+            @test bus_kws isa Bus
+            @test bus_kws.base_voltage == 69.0
+
+            branch_kws = Branch(
+                name="moo",
+                to_bus="foo1",
+                from_bus="foo2",
+                rate_a=50.0,
+                rate_b=55.0,
+                is_monitored=true,
+                break_points=(1.0, 2.0),
+                penalties=(3.0, 4.0),
+                resistance=1.0,
+                reactance=1.0
+            )
+            @test branch_kws isa Branch
+            @test branch_kws.is_monitored
+
+            gen_ts_kws = GeneratorTimeSeries(
+                initial_generation=fake_vec_ts,
+                offer_curve=fake_offer_ts,
+                regulation_min=fake_gen_ts,
+                regulation_max=fake_gen_ts,
+                pmin=fake_gen_ts,
+                pmax=fake_gen_ts,
+                asm_regulation=fake_services_ts,
+                asm_spin=fake_services_ts,
+                asm_sup_on=fake_services_ts,
+                asm_sup_off=fake_services_ts
+            )
+            @test gen_ts_kws isa GeneratorTimeSeries
+            @test gen_ts_kws.pmin == fake_gen_ts
+
+            da_gen_status_kws = GeneratorStatusDA(
+                hours_at_status=fake_vec_ts,
+                availability=fake_bool_ts,
+                must_run=fake_bool_ts
+            )
+            @test da_gen_status_kws isa GeneratorStatusDA
+            @test da_gen_status_kws.must_run == fake_bool_ts
+
+            rt_gen_status_kws = GeneratorStatusRT(
+                status=fake_bool_ts,
+                status_regulation=fake_bool_ts
+            )
+            @test rt_gen_status_kws isa GeneratorStatusRT
+            @test rt_gen_status_kws.status == fake_bool_ts
+
+            da_system_kws = SystemDA(
+                buses=buses,
+                generators=gens,
+                loads=fake_gen_ts,
+                branches=branches,
+                zones=zones,
+                generator_time_series=generator_time_series,
+                generator_status=da_gen_status,
+                increment=fake_offer_ts,
+                decrement=fake_offer_ts,
+                price_sensitive_demand=fake_offer_ts,
+                gens_per_bus=gens_per_bus,
+                incs_per_bus=incs_per_bus,
+                decs_per_bus=decs_per_bus,
+                psds_per_bus=psds_per_bus,
+                loads_per_bus=loads_per_bus,
+                lodf=lodf,
+                ptdf=ptdf,
+            )
+            @test da_system_kws isa SystemDA
+            @test da_system_kws.ptdf == ptdf
+
+            rt_system_kws = SystemRT(
+                gens_per_bus=gens_per_bus,
+                loads_per_bus=loads_per_bus,
+                zones=zones,
+                buses=buses,
+                generators=gens,
+                branches=branches,
+                lodf=lodf,
+                ptdf=ptdf,
+                generator_time_series=generator_time_series,
+                generator_status=rt_gen_status,
+                loads=fake_gen_ts
+            )
+            @test rt_system_kws isa SystemRT
+            @test rt_system_kws.lodf == lodf
+        end
+
         @testset "System accessor functions" begin
             @testset "Common accessors $T" for (system, T) in (
                 (da_system, SystemDA), (rt_system, SystemRT)
