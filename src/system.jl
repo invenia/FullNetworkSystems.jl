@@ -207,10 +207,16 @@ function Branch(;
     penalties,
     resistance,
     reactance,
-    is_transformer=false,
     tap=missing,
     angle=missing
 )
+    if ismissing(tap) && ismissing(angle)
+        is_transformer = false
+    elseif !ismissing(tap) && !ismissing(angle)
+        is_transformer = true
+    else
+        ArgumentError("Transformers must have non-missing values for both `tap` and `angle`. Got `tap=$tap, angle=$angle`.")
+    end
     return Branch(
         name,
         to_bus,
