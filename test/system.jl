@@ -249,8 +249,11 @@
             end
 
             @testset "SystemDA only accessors" begin
-                @test get_initial_commitment(da_system) isa KeyedArray{Bool, 1}
                 @test get_initial_commitment(da_system) == [trues(length(ids) - 2); falses(2)]
+
+                @test get_initial_uptime(da_system) == [hours_at_status[1:end-2]..., 0, 0]
+                @test get_initial_downtime(da_system) == [zeros(length(ids)-2); hours_at_status[end-1:end]...]
+
                 @test get_incs_per_bus(da_system) == incs_per_bus
                 @test get_decs_per_bus(da_system) == decs_per_bus
                 @test get_psds_per_bus(da_system) == psds_per_bus
