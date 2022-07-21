@@ -1,6 +1,7 @@
 const MARKET_WIDE_ZONE = -9999
 const BidName = InlineString31
 const ZoneNum = Int64
+
 """
     $TYPEDEF
 
@@ -11,7 +12,7 @@ of 100MW.
 Fields:
 $TYPEDFIELDS
 """
-struct Zone
+Base.@kwdef struct Zone
     "Zone number"
     number::ZoneNum
     "Zonal regulation requirement (pu)"
@@ -33,7 +34,7 @@ series data).  Parameters given in `pu` assume a base power of 100MW.
 Fields:
 $TYPEDFIELDS
 """
-struct Generator
+Base.@kwdef struct Generator
     "Generator id/unit code"
     unit_code::UnitCode
     "Number of the zone the generator is located in"
@@ -66,7 +67,7 @@ Type for static bus attributes.
 Fields:
 $TYPEDFIELDS
 """
-struct Bus
+Base.@kwdef struct Bus
     "Bus name"
     name::BusName
     "Base voltage (kV)"
@@ -139,7 +140,7 @@ function Branch(
     rate_b,
     is_monitored,
     break_points,
-    penalities,
+    penalties,
     resistance=0.0,
     reactance=0.0
 )
@@ -154,7 +155,7 @@ function Branch(
         rate_b,
         is_monitored,
         break_points,
-        penalities,
+        penalties,
         resistance,
         reactance,
         is_transformer,
@@ -171,7 +172,7 @@ function Branch(
     rate_b,
     is_monitored,
     break_points,
-    penalities,
+    penalties,
     resistance,
     reactance,
     tap::Float64,
@@ -186,7 +187,45 @@ function Branch(
         rate_b,
         is_monitored,
         break_points,
-        penalities,
+        penalties,
+        resistance,
+        reactance,
+        is_transformer,
+        tap,
+        angle
+    )
+end
+
+function Branch(;
+    name,
+    to_bus,
+    from_bus,
+    rate_a,
+    rate_b,
+    is_monitored,
+    break_points,
+    penalties,
+    resistance,
+    reactance,
+    tap=missing,
+    angle=missing
+)
+    if ismissing(tap) && ismissing(angle)
+        is_transformer = false
+    elseif !ismissing(tap) && !ismissing(angle)
+        is_transformer = true
+    else
+        ArgumentError("Transformers must have non-missing values for both `tap` and `angle`. Got `tap=$tap, angle=$angle`.")
+    end
+    return Branch(
+        name,
+        to_bus,
+        from_bus,
+        rate_a,
+        rate_b,
+        is_monitored,
+        break_points,
+        penalties,
         resistance,
         reactance,
         is_transformer,
@@ -206,7 +245,7 @@ Values given in `pu` assume a base power of 100MW.
 Fields:
 $TYPEDFIELDS
 """
-struct GeneratorTimeSeries
+Base.@kwdef struct GeneratorTimeSeries
     "Generation of the generator at the start of the time period (pu)"
     initial_generation::KeyedArray{Float64, 1}
     "Generator offer curves. `KeyedArray` where the axis keys are `generator names x datetimes`"
@@ -256,7 +295,7 @@ Generator status time series data needed for the day-ahead formulation.
 Fields:
 $TYPEDFIELDS
 """
-struct GeneratorStatusDA <: GeneratorStatus
+Base.@kwdef struct GeneratorStatusDA <: GeneratorStatus
     "Hours each generator has been at its current status at the start of the day"
     hours_at_status::KeyedArray{Float64, 1}
     "Flag indicating if the generator is available to be committed in each hour"
@@ -273,7 +312,7 @@ Generator status time series data needed for the real-time formulation.
 Fields:
 $TYPEDFIELDS
 """
-struct GeneratorStatusRT <: GeneratorStatus
+Base.@kwdef struct GeneratorStatusRT <: GeneratorStatus
     "Generator commitment status indicated by a `Bool`"
     status::KeyedArray{Bool, 2}
     "Generator regulation commitment status indicated by a `Bool`"
@@ -301,7 +340,7 @@ Subtype of a `System` for modelling the day-ahead market.
 Fields:
 $TYPEDFIELDS
 """
-mutable struct SystemDA <: System
+Base.@kwdef mutable struct SystemDA <: System
     "`Dictionary` where the keys are bus names and the values are generator ids at that bus"
     gens_per_bus::Dictionary{BusName, Vector{Int}}
     "`Dictionary` where the keys are bus names and the values are increment bid ids at that bus"
@@ -363,7 +402,7 @@ Subtype of a `System` for modelling the real-time market.
 Fields:
 $TYPEDFIELDS
 """
-mutable struct SystemRT <: System
+Base.@kwdef mutable struct SystemRT <: System
     "`Dictionary` where the keys are bus names and the values are generator ids at that bus"
     gens_per_bus::Dictionary{BusName, Vector{Int}}
     "`Dictionary` where the keys are bus names and the values are load ids at that bus"
