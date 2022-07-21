@@ -25,7 +25,7 @@
             zone=1,
             startup_cost=0.0,
             shutdown_cost=1.0,
-            noload_cost=1.0,
+            no_load_cost=1.0,
             min_uptime=24.0,
             min_downtime=24.0,
             ramp_up=2.0,
@@ -57,14 +57,14 @@
         @test !branch1.is_transformer
 
         branch2 = Branch(
-            name="2",
-            to_bus="A",
-            from_bus="C",
-            rate_a=10.0,
-            rate_b=10.0,
-            is_monitored=true,
-            break_points=(100.0, 102.0),
-            penalties=(5.0, 6.0)
+            "2",
+            "A",
+            "C",
+            10.0,
+            10.0,
+            true,
+            (100.0, 102.0),
+            (5.0, 6.0)
         )
         @test branch2 isa Branch
         @test !branch2.is_transformer
