@@ -127,17 +127,17 @@ function gens_per_zone(system::System)
 end
 
 """
-    branches_by_breakpoints(system::System)
+    branches_by_breakpoints(system::System) -> NTuple{3, Vector{$BranchName}}
 
 Returns three vectors containing of the names of branches which have 0, 1, and 2 breakpoints.
 """
 function branches_by_breakpoints(system::System)
-    zero_bp, one_bp, two_bp = String[], String[], String[]
+    zero_bp, one_bp, two_bp = BranchName[], BranchName[], BranchName[]
     for branch in system.branches
         if branch.is_monitored
-            if all(branch.break_points .== 0.0)
+            if all(iszero, branch.break_points)
                 push!(zero_bp, branch.name)
-            elseif last(branch.break_points) == 0.0
+            elseif iszero(last(branch.break_points))
                 push!(one_bp, branch.name)
             else
                 push!(two_bp, branch.name)

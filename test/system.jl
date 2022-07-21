@@ -238,10 +238,11 @@
                     @test v == gen_ids
                 end
 
-                zero_bp, one_bp, two_bp = branches_by_breakpoints(da_system)
+                zero_bp, one_bp, two_bp = branches_by_breakpoints(system)
                 @test zero_bp == ["3"]
-                @test one_bp == String[] #unmonitored
+                @test one_bp == [] # unmonitored
                 @test two_bp == ["1", "4"]
+                @test eltype(zero_bp) == eltype(one_bp) == eltype(two_bp) == FullNetworkSystems.BranchName
 
                 # Check that we can remove the PTDF
                 system.ptdf = missing
