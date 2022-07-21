@@ -121,7 +121,7 @@
         services_time_series() = KeyedArray(vcat(rand(length(ids) - 1, length(datetimes)), fill(missing, 1, length(datetimes))); ids, datetimes)
         offer_time_series() = KeyedArray(fill([(1.0, 100.0)], length(ids), length(datetimes)); ids, datetimes)
 
-        initial_generation = KeyedArray(rand(length(ids)); ids)
+        initial_generation = KeyedArray([rand(length(ids) - 2); fill(0.0, 2)]; ids)
         offer_curve = offer_time_series()
         regulation_min = time_series()
         regulation_max = time_series()
@@ -250,6 +250,7 @@
 
             @testset "SystemDA only accessors" begin
                 @test get_initial_commitment(da_system) isa KeyedArray{Bool, 1}
+                @test get_initial_commitment(da_system) == [trues(length(ids) - 2); falses(2)]
                 @test get_incs_per_bus(da_system) == incs_per_bus
                 @test get_decs_per_bus(da_system) == decs_per_bus
                 @test get_psds_per_bus(da_system) == psds_per_bus
