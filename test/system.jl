@@ -231,7 +231,7 @@
                 @test skipmissing(get_supplemental_on(system)) == skipmissing(asm_sup_on)
                 @test skipmissing(get_supplemental_off(system)) == skipmissing(asm_sup_off)
 
-                gens_by_zone = gens_per_zone(da_system)
+                gens_by_zone = gens_per_zone(system)
                 @test issetequal(keys(gens_by_zone), [1, FullNetworkSystems.MARKET_WIDE_ZONE])
                 for (_, v) in gens_by_zone
                     @test v == gen_ids
