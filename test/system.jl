@@ -94,11 +94,10 @@
         branches = Dictionary(
             branch_names,
             [
-                Branch("1", "A", "B", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0),
-                Branch("2", "B", "C", 10.0, 10.0, false, (100.0, 0.0), (5.0, 0.0), 1.0, 1.0),
-                Branch("3", "C", "A", 10.0, 10.0, true, (0.0, 0.0), (0.0, 0.0), 1.0, 1.0),
-                Branch(
-                    "4", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0, 0.5, 30.0
+                Branch("1", "A", "B", 10.0, 10.0, true,  (100.0, 102.0), (5.0, 6.0), 1.0, 1.0),
+                Branch("2", "B", "C", 10.0, 10.0, false, (100.0,   0.0), (5.0, 0.0), 1.0, 1.0),
+                Branch("3", "C", "A", 10.0, 10.0, true,  (0.0,     0.0), (0.0, 0.0), 1.0, 1.0),
+                Branch("4", "A", "C", 10.0, 10.0, true,  (100.0, 102.0), (5.0, 6.0), 1.0, 1.0, 0.5, 30.0,
                 )
             ]
         )
@@ -243,6 +242,22 @@
                 @test one_bp == [] # unmonitored
                 @test two_bp == ["1", "4"]
                 @test eltype(zero_bp) == eltype(one_bp) == eltype(two_bp) == FullNetworkSystems.BranchName
+
+                # Also test on a system with a 1-breakpoint branch
+                da_system.branches = Dictionary(
+                    branch_names,
+                    [
+                        Branch("1", "A", "B", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0),
+                        Branch("2", "B", "C", 10.0, 10.0, true, (100.0,   0.0), (5.0, 0.0), 1.0, 1.0),
+                        Branch("3", "C", "A", 10.0, 10.0, true, (0.0,     0.0), (5.0, 6.0), 1.0, 1.0),
+                        Branch("4", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0),
+                    ]
+                )
+                zero_bp, one_bp, two_bp = branches_by_breakpoints(da_system)
+                @test zero_bp == ["3"]
+                @test one_bp == ["2"]
+                @test two_bp == ["1", "4"]
+                da_system.branches = branches  # reset
 
                 # Check that we can remove the PTDF
                 system.ptdf = missing
