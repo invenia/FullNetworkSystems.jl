@@ -15,31 +15,73 @@
     )
 
     @testset "Zone" begin
-        zone1 = Zone(1, 1.0, 1.0, 1.0)
+        zone1 = Zone(number=1, regulation=1.0, operating_reserve=1.0, good_utility=1.0)
         @test zone1 isa Zone
     end
 
     @testset "Generator" begin
-        gen1 = Generator(111, 1, 0.0, 1.0, 1.0, 24.0, 24.0, 2.0, 2.0, :tech)
+        gen1 = Generator(
+            unit_code=111,
+            zone=1,
+            startup_cost=0.0,
+            shutdown_cost=1.0,
+            noload_cost=1.0,
+            min_uptime=24.0,
+            min_downtime=24.0,
+            ramp_up=2.0,
+            ramp_down=2.0,
+            technology=:tech
+        )
         @test gen1 isa Generator
     end
 
     @testset "Bus" begin
-        bus1 = Bus("A", 100.0)
+        bus1 = Bus(name="A", base_voltage=100.0)
         @test bus1 isa Bus
     end
 
     @testset "Branch" begin
-        branch1 = Branch("1", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0)
+        branch1 = Branch(
+            name="1",
+            to_bus="A",
+            from_bus="C",
+            rate_a=10.0,
+            rate_b=10.0,
+            is_monitored=true,
+            break_points=(100.0, 102.0),
+            penalties=(5.0, 6.0),
+            resistance=1.0,
+            reactance=1.0
+        )
         @test branch1 isa Branch
         @test !branch1.is_transformer
 
-        branch2 = Branch("2", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0))
+        branch2 = Branch(
+            name="2",
+            to_bus="A",
+            from_bus="C",
+            rate_a=10.0,
+            rate_b=10.0,
+            is_monitored=true,
+            break_points=(100.0, 102.0),
+            penalties=(5.0, 6.0)
+        )
         @test branch2 isa Branch
         @test !branch2.is_transformer
 
         transformer1 = Branch(
-            "1", "A", "C", 10.0, 10.0, true, (100.0, 102.0), (5.0, 6.0), 1.0, 1.0, 0.5, 30.0
+            name="1",
+            to_bus="A",
+            from_bus="C",
+            rate_a=10.0,
+            rate_b=10.0,
+            is_monitored=true,
+            break_points=(100.0, 102.0),
+            penalties=(5.0, 6.0),
+            resistance=1.0,
+            reactance=1.0,
+            tap=0.5,
+            angle=30.0
         )
         @test transformer1 isa Branch
     end
@@ -87,166 +129,56 @@
         ptdf = KeyedArray(rand(4, 3); row=branch_names, col=bus_names)
 
         generator_time_series = GeneratorTimeSeries(
-            fake_vec_ts,
-            fake_offer_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_gen_ts,
-            fake_services_ts,
-            fake_services_ts,
-            fake_services_ts,
-            fake_services_ts
+            initial_generation=fake_vec_ts,
+            offer_curve=fake_offer_ts,
+            regulation_min=fake_gen_ts,
+            regulation_max=fake_gen_ts,
+            pmin=fake_gen_ts,
+            pmax=fake_gen_ts,
+            asm_regulation=fake_services_ts,
+            asm_spin=fake_services_ts,
+            asm_sup_on=fake_services_ts,
+            asm_sup_off=fake_services_ts
         )
-        da_gen_status = GeneratorStatusDA(fake_vec_ts, fake_bool_ts, fake_bool_ts)
+        da_gen_status = GeneratorStatusDA(
+            hours_at_status=fake_vec_ts, availability=fake_bool_ts, must_run=fake_bool_ts
+        )
         da_system = SystemDA(
-            gens_per_bus,
-            incs_per_bus,
-            decs_per_bus,
-            psds_per_bus,
-            loads_per_bus,
-            zones,
-            buses,
-            gens,
-            branches,
-            lodf,
-            ptdf,
-            generator_time_series,
-            da_gen_status,
-            fake_gen_ts,
-            fake_offer_ts,
-            fake_offer_ts,
-            fake_offer_ts
+            gens_per_bus=gens_per_bus,
+            incs_per_bus=incs_per_bus,
+            decs_per_bus=decs_per_bus,
+            psds_per_bus=psds_per_bus,
+            loads_per_bus=loads_per_bus,
+            zones=zones,
+            buses=buses,
+            generators=gens,
+            branches=branches,
+            lodf=lodf,
+            ptdf=ptdf,
+            generator_time_series=generator_time_series,
+            generator_status=da_gen_status,
+            loads=fake_gen_ts,
+            increment=fake_offer_ts,
+            decrement=fake_offer_ts,
+            price_sensitive_demand=fake_offer_ts
         )
         @test da_system isa SystemDA
 
         rt_gen_status = GeneratorStatusRT(fake_bool_ts, fake_bool_ts)
         rt_system = SystemRT(
-            gens_per_bus,
-            loads_per_bus,
-            zones,
-            buses,
-            gens,
-            branches,
-            lodf,
-            ptdf,
-            generator_time_series,
-            rt_gen_status,
-            fake_gen_ts
+            gens_per_bus=gens_per_bus,
+            loads_per_bus=loads_per_bus,
+            zones=zones,
+            buses=buses,
+            generators=gens,
+            branches=branches,
+            lodf=lodf,
+            ptdf=ptdf,
+            generator_time_series=generator_time_series,
+            generator_status=rt_gen_status,
+            loads=fake_gen_ts
         )
         @test rt_system isa SystemRT
-
-
-        @testset "Constructors using keywords" begin
-            zone_kws = Zone(
-                number=1, regulation=10.0, operating_reserve=20.0, good_utility=5.0
-            )
-            @test zone_kws isa Zone
-            @test zone_kws.regulation == 10.0
-
-            generator_kws = Generator(
-                unit_code=1,
-                zone=1,
-                startup_cost=10.0,
-                shutdown_cost=5.0,
-                no_load_cost=1.0,
-                min_uptime=2.0,
-                min_downtime=1.0,
-                ramp_up=0.2,
-                ramp_down=0.4,
-                technology=:foo
-            )
-            @test generator_kws isa Generator
-            @test generator_kws.technology == :foo
-
-            bus_kws = Bus(name="foo", base_voltage=69.0)
-            @test bus_kws isa Bus
-            @test bus_kws.base_voltage == 69.0
-
-            branch_kws = Branch(
-                name="moo",
-                to_bus="foo1",
-                from_bus="foo2",
-                rate_a=50.0,
-                rate_b=55.0,
-                is_monitored=true,
-                break_points=(1.0, 2.0),
-                penalties=(3.0, 4.0),
-                resistance=1.0,
-                reactance=1.0
-            )
-            @test branch_kws isa Branch
-            @test branch_kws.is_monitored
-            @test !branch_kws.is_transformer
-
-            gen_ts_kws = GeneratorTimeSeries(
-                initial_generation=fake_vec_ts,
-                offer_curve=fake_offer_ts,
-                regulation_min=fake_gen_ts,
-                regulation_max=fake_gen_ts,
-                pmin=fake_gen_ts,
-                pmax=fake_gen_ts,
-                asm_regulation=fake_services_ts,
-                asm_spin=fake_services_ts,
-                asm_sup_on=fake_services_ts,
-                asm_sup_off=fake_services_ts
-            )
-            @test gen_ts_kws isa GeneratorTimeSeries
-            @test gen_ts_kws.pmin == fake_gen_ts
-
-            da_gen_status_kws = GeneratorStatusDA(
-                hours_at_status=fake_vec_ts,
-                availability=fake_bool_ts,
-                must_run=fake_bool_ts
-            )
-            @test da_gen_status_kws isa GeneratorStatusDA
-            @test da_gen_status_kws.must_run == fake_bool_ts
-
-            rt_gen_status_kws = GeneratorStatusRT(
-                status=fake_bool_ts,
-                status_regulation=fake_bool_ts
-            )
-            @test rt_gen_status_kws isa GeneratorStatusRT
-            @test rt_gen_status_kws.status == fake_bool_ts
-
-            da_system_kws = SystemDA(
-                buses=buses,
-                generators=gens,
-                loads=fake_gen_ts,
-                branches=branches,
-                zones=zones,
-                generator_time_series=generator_time_series,
-                generator_status=da_gen_status,
-                increment=fake_offer_ts,
-                decrement=fake_offer_ts,
-                price_sensitive_demand=fake_offer_ts,
-                gens_per_bus=gens_per_bus,
-                incs_per_bus=incs_per_bus,
-                decs_per_bus=decs_per_bus,
-                psds_per_bus=psds_per_bus,
-                loads_per_bus=loads_per_bus,
-                lodf=lodf,
-                ptdf=ptdf,
-            )
-            @test da_system_kws isa SystemDA
-            @test da_system_kws.ptdf == ptdf
-
-            rt_system_kws = SystemRT(
-                gens_per_bus=gens_per_bus,
-                loads_per_bus=loads_per_bus,
-                zones=zones,
-                buses=buses,
-                generators=gens,
-                branches=branches,
-                lodf=lodf,
-                ptdf=ptdf,
-                generator_time_series=generator_time_series,
-                generator_status=rt_gen_status,
-                loads=fake_gen_ts
-            )
-            @test rt_system_kws isa SystemRT
-            @test rt_system_kws.lodf == lodf
-        end
 
         @testset "System accessor functions" begin
             @testset "Common accessors $T" for (system, T) in (
