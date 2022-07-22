@@ -105,7 +105,7 @@
         gens_per_bus = Dictionary(bus_names, rand(gen_ids, 3) for _ in bus_names)
         incs_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
         decs_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
-        psds_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
+        psls_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
         loads_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
 
         lodfs = Dictionary(
@@ -154,12 +154,12 @@
         loads = time_series()
         increments = offer_time_series()
         decrements = offer_time_series()
-        price_sensitive_demands = offer_time_series()
+        price_sensitive_loads = offer_time_series()
         da_system = SystemDA(;
             gens_per_bus,
             incs_per_bus,
             decs_per_bus,
-            psds_per_bus,
+            psls_per_bus,
             loads_per_bus,
             zones,
             buses,
@@ -172,7 +172,7 @@
             loads,
             increments,
             decrements,
-            price_sensitive_demands,
+            price_sensitive_loads,
         )
         @test da_system isa SystemDA
 
@@ -286,11 +286,11 @@
 
                 @test get_incs_per_bus(da_system) == incs_per_bus
                 @test get_decs_per_bus(da_system) == decs_per_bus
-                @test get_psds_per_bus(da_system) == psds_per_bus
+                @test get_psls_per_bus(da_system) == psls_per_bus
 
                 @test get_increments(da_system) == increments
                 @test get_decrements(da_system) == decrements
-                @test get_price_sensitive_demands(da_system) == price_sensitive_demands
+                @test get_price_sensitive_loads(da_system) == price_sensitive_loads
 
                 @test get_availability(da_system) == availability
                 @test get_must_run(da_system) == must_run
@@ -298,7 +298,8 @@
                 @testset "deprecated" begin
                     @test (@test_deprecated get_bids(da_system, :increment)) == increments
                     @test (@test_deprecated get_bids(da_system, :decrement)) == decrements
-                    @test (@test_deprecated get_bids(da_system, :price_sensitive_demand)) == price_sensitive_demands
+                    @test (@test_deprecated get_bids(da_system, :price_sensitive_demand)) == price_sensitive_loads
+                    @test (@test_deprecated get_psds_per_bus(da_system)) == psls_per_bus
                 end
             end
 

@@ -348,10 +348,10 @@ Base.@kwdef mutable struct SystemDA <: System
     "`Dictionary` where the keys are bus names and the values are decrement bid ids at that bus"
     decs_per_bus::Dictionary{BusName, Vector{BidName}}
     """
-    `Dictionary` where the keys are bus names and the values are price sensitive demand bid
+    `Dictionary` where the keys are bus names and the values are price sensitive load bid
     ids at that bus
     """
-    psds_per_bus::Dictionary{BusName, Vector{BidName}}
+    psls_per_bus::Dictionary{BusName, Vector{BidName}}
     "`Dictionary` where the keys are bus names and the values are load ids at that bus"
     loads_per_bus::Dictionary{BusName, Vector{BidName}}
 
@@ -390,8 +390,8 @@ Base.@kwdef mutable struct SystemDA <: System
     increments::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
     "Decrement bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
     decrements::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
-    "Price sensitive demand bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
-    price_sensitive_demands::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    "Price sensitive load bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
+    price_sensitive_loads::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
 end
 
 """
