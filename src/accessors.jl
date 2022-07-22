@@ -113,10 +113,10 @@ get_availability(system::SystemDA) = system.generator_status.availability
 "Returns time series data of flags indicating if the generator must be committed in each hour"
 get_must_run(system::SystemDA) = system.generator_status.must_run
 
-"Returns time series data of generator status in each hour"
-get_commitment(system::SystemRT) = system.generator_status.status
-"Returns time series data of generator regulation status in each hour"
-get_regulation_commitment(system::SystemRT) = system.generator_status.status_regulation
+"Returns time series data of generator commitment status in each hour"
+get_commitment(system::SystemRT) = system.generator_status.commitment
+"Returns time series data of generator regulation commitment status in each hour"
+get_regulation_commitment(system::SystemRT) = system.generator_status.regulation_commitment
 
 """
     gens_per_zone(system::System)

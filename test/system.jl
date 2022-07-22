@@ -176,9 +176,9 @@
         )
         @test da_system isa SystemDA
 
-        status = time_series(Bool)
-        status_regulation = time_series(Bool)
-        rt_generator_status = GeneratorStatusRT(; status, status_regulation)
+        commitment = time_series(Bool)
+        regulation_commitment= time_series(Bool)
+        rt_generator_status = GeneratorStatusRT(; commitment, regulation_commitment)
 
         rt_system = SystemRT(;
             gens_per_bus,
@@ -290,8 +290,8 @@
             end
 
             @testset "SystemRT only accessors" begin
-                @test get_commitment(rt_system) == status
-                @test get_regulation_commitment(rt_system) == status_regulation
+                @test get_commitment(rt_system) == commitment
+                @test get_regulation_commitment(rt_system) == regulation_commitment
             end
         end
     end

@@ -296,7 +296,7 @@ Fields:
 $TYPEDFIELDS
 """
 Base.@kwdef struct GeneratorStatusDA <: GeneratorStatus
-    "Hours each generator has been at its current status at the start of the day"
+    "Hours each generator has been at its current commitment status at the start of the day"
     hours_at_status::KeyedArray{Float64, 1}
     "Flag indicating if the generator is available to be committed in each hour"
     availability::KeyedArray{Bool, 2}
@@ -314,9 +314,9 @@ $TYPEDFIELDS
 """
 Base.@kwdef struct GeneratorStatusRT <: GeneratorStatus
     "Generator commitment status indicated by a `Bool`"
-    status::KeyedArray{Bool, 2}
+    commitment::KeyedArray{Bool, 2}
     "Generator regulation commitment status indicated by a `Bool`"
-    status_regulation::KeyedArray{Bool, 2}
+    regulation_commitment::KeyedArray{Bool, 2}
 end
 
 """
