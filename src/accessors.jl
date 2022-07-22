@@ -106,6 +106,8 @@ get_increments(system::SystemDA) = system.increments
 get_decrements(system::SystemDA) = system.decrements
 "Returns time series data of price sensitive load bids."
 get_price_sensitive_loads(system::SystemDA) = system.price_sensitive_loads
+"Returns time series data of both increment bids and decrement bids."
+get_virtuals(system::SystemDA) = vcat(system.increments, system.decrements)
 
 "Returns time series data of flags indicating if the generator is available to be committed in each hour"
 get_availability(system::SystemDA) = system.generator_status.availability

@@ -16,7 +16,7 @@ export get_regulation_requirements, get_operating_reserve_requirements, get_good
 export get_gens_per_bus, get_loads_per_bus, get_incs_per_bus, get_decs_per_bus, get_psls_per_bus
 export get_ptdf, get_lodfs
 export get_initial_commitment, get_initial_downtime, get_initial_uptime
-export get_increments, get_decrements, get_price_sensitive_loads
+export get_increments, get_decrements, get_virtuals, get_price_sensitive_loads
 export get_availability, get_must_run
 export get_initial_generation, get_loads, get_offer_curve
 export get_pmin, get_pmax, get_regulation_min, get_regulation_max
