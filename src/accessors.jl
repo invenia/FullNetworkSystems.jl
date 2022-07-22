@@ -54,7 +54,7 @@ get_lodfs(system::System) = system.lodfs
 
 "Returns the generation of the generator at the start of the time period (pu)"
 get_initial_generation(system::System) = system.generator_time_series.initial_generation
-"Returns time series data of the loads in the system"
+"Returns time series data of the fixed loads in the system"
 get_loads(system::System) = system.loads
 "Returns time series data of the generator offer curves"
 get_offer_curve(system::System) = system.generator_time_series.offer_curve
