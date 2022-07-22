@@ -259,25 +259,25 @@ Base.@kwdef struct GeneratorTimeSeries
     "Generator maximum output (pu)"
     pmax::KeyedArray{Float64, 2}
     """
-    Ancillary services regulation offer prices (\$ /pu). Generators not providing the service
-    will have `missing` offer data
+    Ancillary services regulation reserve offer prices (\$ /pu).
+    Generators not providing the service will have `missing` offer data.
     """
-    asm_regulation::KeyedArray{Union{Missing, Float64}, 2}
+    regulation_offers::KeyedArray{Union{Missing, Float64}, 2}
     """
-    Ancillary services spinning offer prices (\$ /pu). Generators not providing the service
-    will have `missing` offer data
+    Ancillary services spinning reserve offer prices (\$ /pu).
+    Generators not providing the service will have `missing` offer data.
     """
-    asm_spin::KeyedArray{Union{Missing, Float64}, 2}
+    spinning_offers::KeyedArray{Union{Missing, Float64}, 2}
     """
-    Ancillary services supplemental on offer prices (\$ /pu). Generators not providing the service
-    will have `missing` offer data
+    Ancillary services online supplemental reserve offer prices (\$ /pu).
+    Generators not providing the service will have `missing` offer data.
     """
-    asm_sup_on::KeyedArray{Union{Missing, Float64}, 2}
+    on_supplemental_offers::KeyedArray{Union{Missing, Float64}, 2}
     """
-    Ancillary services supplemental off offer prices (\$ /pu). Generators not providing the service
-    will have `missing` offer data
+    Ancillary services offline supplemental reserve offer prices (\$ /pu).
+    Generators not providing the service will have `missing` offer data.
     """
-    asm_sup_off::KeyedArray{Union{Missing, Float64}, 2}
+    off_supplemental_offers::KeyedArray{Union{Missing, Float64}, 2}
 end
 
 """

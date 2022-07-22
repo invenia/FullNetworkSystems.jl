@@ -19,7 +19,7 @@ export get_initial_commitment, get_initial_downtime, get_initial_uptime
 export get_bids, get_availability, get_must_run
 export get_initial_generation, get_loads, get_offer_curve
 export get_pmin, get_pmax, get_regulation_min, get_regulation_max
-export get_regulation, get_spinning, get_supplemental_on, get_supplemental_off
+export get_regulation_offers, get_spinning_offers, get_on_supplemental_offers, get_off_supplemental_offers
 export get_commitment, get_regulation_commitment
 
 include("system.jl")

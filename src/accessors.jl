@@ -67,14 +67,14 @@ get_regulation_min(system::System) = system.generator_time_series.regulation_min
 "Returns time series data of maximum generator output in the ancillary services market (pu)"
 get_regulation_max(system::System) = system.generator_time_series.regulation_max
 
-"Returns time series data of offer prices for ancillary servives regulation (\$ /pu)"
-get_regulation(system::System) = system.generator_time_series.asm_regulation
-"Returns time series data of offer prices for ancillary servives spinning (\$ /pu)"
-get_spinning(system::System) = system.generator_time_series.asm_spin
-"Returns time series data of offer prices for ancillary servives supplemental on (\$ /pu)"
-get_supplemental_on(system::System) = system.generator_time_series.asm_sup_on
-"Returns time series data of offer prices for ancillary servives supplemental off (\$ /pu)"
-get_supplemental_off(system::System) = system.generator_time_series.asm_sup_off
+"Returns time series data of offer prices for ancillary servives regulation reserves (\$ /pu)"
+get_regulation_offers(system::System) = system.generator_time_series.regulation_offers
+"Returns time series data of offer prices for ancillary servives spinning reserves (\$ /pu)"
+get_spinning_offers(system::System) = system.generator_time_series.spinning_offers
+"Returns time series data of offer prices for ancillary servives online supplemental reserves (\$ /pu)"
+get_on_supplemental_offers(system::System) = system.generator_time_series.on_supplemental_offers
+"Returns time series data of offer prices for ancillary servives offline supplemental reserves (\$ /pu)"
+get_off_supplemental_offers(system::System) = system.generator_time_series.off_supplemental_offers
 
 "Returns a flag indicating whether each generator was on at the start of the day."
 function get_initial_commitment(system::SystemDA)

@@ -128,10 +128,10 @@
         pmax = time_series()
         pmin = time_series()
         pmax = time_series()
-        asm_regulation = services_time_series()
-        asm_spin = services_time_series()
-        asm_sup_on = services_time_series()
-        asm_sup_off = services_time_series()
+        regulation_offers = services_time_series()
+        spinning_offers = services_time_series()
+        on_supplemental_offers = services_time_series()
+        off_supplemental_offers = services_time_series()
 
         generator_time_series = GeneratorTimeSeries(;
             initial_generation,
@@ -140,10 +140,10 @@
             regulation_max,
             pmin,
             pmax,
-            asm_regulation,
-            asm_spin,
-            asm_sup_on,
-            asm_sup_off,
+            regulation_offers,
+            spinning_offers,
+            on_supplemental_offers,
+            off_supplemental_offers,
         )
 
         hours_at_status = KeyedArray(rand(length(ids)); ids)
@@ -226,10 +226,10 @@
                 @test get_regulation_min(system) == regulation_min
                 @test get_regulation_max(system) == regulation_max
 
-                @test skipmissing(get_regulation(system)) == skipmissing(asm_regulation)
-                @test skipmissing(get_spinning(system)) == skipmissing(asm_spin)
-                @test skipmissing(get_supplemental_on(system)) == skipmissing(asm_sup_on)
-                @test skipmissing(get_supplemental_off(system)) == skipmissing(asm_sup_off)
+                @test skipmissing(get_regulation_offers(system)) == skipmissing(regulation_offers)
+                @test skipmissing(get_spinning_offers(system)) == skipmissing(spinning_offers)
+                @test skipmissing(get_on_supplemental_offers(system)) == skipmissing(on_supplemental_offers)
+                @test skipmissing(get_off_supplemental_offers(system)) == skipmissing(off_supplemental_offers)
 
                 gens_by_zone = gens_per_zone(system)
                 @test issetequal(keys(gens_by_zone), [1, FullNetworkSystems.MARKET_WIDE_ZONE])
@@ -270,6 +270,11 @@
                     @test (@test_deprecated get_regmax(system)) == regulation_max
 
                     @test (@test_deprecated get_load(system)) == loads
+
+                    @test (@test_deprecated skipmissing(get_regulation(system))) == skipmissing(regulation_offers)
+                    @test (@test_deprecated skipmissing(get_spinning(system))) == skipmissing(spinning_offers)
+                    @test (@test_deprecated skipmissing(get_supplemental_on(system))) == skipmissing(on_supplemental_offers)
+                    @test (@test_deprecated skipmissing(get_supplemental_off(system))) == skipmissing(off_supplemental_offers)
                 end
             end
 
