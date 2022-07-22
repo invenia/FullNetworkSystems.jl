@@ -49,8 +49,8 @@ get_loads_per_bus(system::System) = system.loads_per_bus
 
 "Returns the power transfer distribution factor of the system."
 get_ptdf(system::System) = system.ptdf
-"Returns the line outage distribution factor matrix of the system for a set of contingencies."
-get_lodf(system::System) = system.lodf
+"Returns a `Dictionary` of the line outage distribution factor matrices for the `System` indexed by contingencies."
+get_lodfs(system::System) = system.lodfs
 
 "Returns the generation of the generator at the start of the time period (pu)"
 get_initial_generation(system::System) = system.generator_time_series.initial_generation

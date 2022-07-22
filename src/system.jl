@@ -368,7 +368,7 @@ Base.@kwdef mutable struct SystemDA <: System
     by the keys of the `Dictionary`. Each entry is a `KeyedArray` with axis keys
     `branch names x branch on outage`
     """
-    lodf::Dictionary{String, KeyedArray{Float64, 2}}
+    lodfs::Dictionary{String, KeyedArray{Float64, 2}}
     """
     Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
     `branch names x bus names`
@@ -421,7 +421,7 @@ Base.@kwdef mutable struct SystemRT <: System
     by the keys of the `Dictionary`. Each entry is a `KeyedArray` with axis keys
     `branch names x branch on outage`
     """
-    lodf::Dictionary{String, KeyedArray{Float64, 2}}
+    lodfs::Dictionary{String, KeyedArray{Float64, 2}}
     """
     Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
     `branch names x bus names`

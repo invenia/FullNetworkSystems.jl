@@ -108,7 +108,7 @@
         psds_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
         loads_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
 
-        lodf = Dictionary(
+        lodfs = Dictionary(
             ["CONTIN_1"],
             [KeyedArray(rand(4, 1); branches=branch_names, branch=[first(branch_names)])]
         )
@@ -165,7 +165,7 @@
             buses,
             generators,
             branches,
-            lodf,
+            lodfs,
             ptdf,
             generator_time_series,
             generator_status=da_generator_status,
@@ -187,7 +187,7 @@
             buses,
             generators,
             branches,
-            lodf,
+            lodfs,
             ptdf,
             generator_time_series,
             generator_status=rt_generator_status,
@@ -216,7 +216,7 @@
                 @test get_loads_per_bus(system) == loads_per_bus
 
                 @test get_ptdf(system) == ptdf
-                @test get_lodf(system) == lodf
+                @test get_lodfs(system) == lodfs
 
                 @test get_initial_generation(system) == initial_generation
                 @test get_load(system) == loads
@@ -262,6 +262,10 @@
                 # Check that we can remove the PTDF
                 system.ptdf = missing
                 @test system.ptdf === missing
+
+                @testset "deprecated" begin
+                    @test (@test_deprecated get_lodf(system)) == lodfs
+                end
             end
 
             @testset "SystemDA only accessors" begin
