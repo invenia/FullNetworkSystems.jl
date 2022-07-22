@@ -83,6 +83,16 @@ function get_initial_commitment(system::SystemDA)
     end
 end
 
+"Returns the number of hours each generator was on at the start of the day."
+function get_initial_uptime(system::SystemDA)
+    return system.generator_status.hours_at_status .* get_initial_commitment(system)
+end
+
+"Returns the number of hours each generator was off at the start of the day."
+function get_initial_downtime(system::SystemDA)
+    return system.generator_status.hours_at_status .* .!get_initial_commitment(system)
+end
+
 "Returns a `Dictionary` of increment bids at each bus."
 get_incs_per_bus(system::SystemDA) = system.incs_per_bus
 "Returns a `Dictionary` of decrement bids at each bus."
