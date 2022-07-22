@@ -387,11 +387,11 @@ Base.@kwdef mutable struct SystemDA <: System
 
     # Virtuals/PSD time series
     "Increment bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
-    increment::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    increments::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
     "Decrement bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
-    decrement::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    decrements::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
     "Price sensitive demand bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
-    price_sensitive_demand::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    price_sensitive_demands::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
 end
 
 """

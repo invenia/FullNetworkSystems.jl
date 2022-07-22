@@ -100,13 +100,12 @@ get_decs_per_bus(system::SystemDA) = system.decs_per_bus
 "Returns a `Dictionary` of price sensitive demand bids at each bus."
 get_psds_per_bus(system::SystemDA) = system.psds_per_bus
 
-"""
-Returns time series data of bids for the bid type indicated.  Bid type must be one of
-`:increment`, `:decrement` or `:price_sensitive_demand`.
-"""
-function get_bids(system::SystemDA, type_of_bid::Symbol)
-    return getproperty(system, type_of_bid)
-end
+"Returns time series data of increment bids."
+get_increments(system::SystemDA) = system.increments
+"Returns time series data of decrement bids."
+get_decrements(system::SystemDA) = system.decrements
+"Returns time series data of price sensitive demand bids."
+get_price_sensitive_demands(system::SystemDA) = system.price_sensitive_demands
 
 "Returns time series data of flags indicating if the generator is available to be committed in each hour"
 get_availability(system::SystemDA) = system.generator_status.availability

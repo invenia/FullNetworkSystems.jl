@@ -152,9 +152,9 @@
         da_generator_status = GeneratorStatusDA(; hours_at_status, availability, must_run)
 
         loads = time_series()
-        increment = offer_time_series()
-        decrement = offer_time_series()
-        price_sensitive_demand = offer_time_series()
+        increments = offer_time_series()
+        decrements = offer_time_series()
+        price_sensitive_demands = offer_time_series()
         da_system = SystemDA(;
             gens_per_bus,
             incs_per_bus,
@@ -170,9 +170,9 @@
             generator_time_series,
             generator_status=da_generator_status,
             loads,
-            increment,
-            decrement,
-            price_sensitive_demand,
+            increments,
+            decrements,
+            price_sensitive_demands,
         )
         @test da_system isa SystemDA
 
@@ -288,12 +288,18 @@
                 @test get_decs_per_bus(da_system) == decs_per_bus
                 @test get_psds_per_bus(da_system) == psds_per_bus
 
-                @test get_bids(da_system, :increment) == increment
-                @test get_bids(da_system, :decrement) == decrement
-                @test get_bids(da_system, :price_sensitive_demand) == price_sensitive_demand
+                @test get_increments(da_system) == increments
+                @test get_decrements(da_system) == decrements
+                @test get_price_sensitive_demands(da_system) == price_sensitive_demands
 
                 @test get_availability(da_system) == availability
                 @test get_must_run(da_system) == must_run
+
+                @testset "deprecated" begin
+                    @test (@test_deprecated get_bids(da_system, :increment)) == increments
+                    @test (@test_deprecated get_bids(da_system, :decrement)) == decrements
+                    @test (@test_deprecated get_bids(da_system, :price_sensitive_demand)) == price_sensitive_demands
+                end
             end
 
             @testset "SystemRT only accessors" begin
