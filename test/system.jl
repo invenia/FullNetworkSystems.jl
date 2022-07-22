@@ -223,8 +223,8 @@
                 @test get_offer_curve(system) == offer_curve
                 @test get_pmin(system) == pmin
                 @test get_pmax(system) == pmax
-                @test get_regmin(system) == regulation_min
-                @test get_regmax(system) == regulation_max
+                @test get_regulation_min(system) == regulation_min
+                @test get_regulation_max(system) == regulation_max
 
                 @test skipmissing(get_regulation(system)) == skipmissing(asm_regulation)
                 @test skipmissing(get_spinning(system)) == skipmissing(asm_spin)
@@ -265,6 +265,9 @@
 
                 @testset "deprecated" begin
                     @test (@test_deprecated get_lodf(system)) == lodfs
+
+                    @test (@test_deprecated get_regmin(system)) == regulation_min
+                    @test (@test_deprecated get_regmax(system)) == regulation_max
                 end
             end
 

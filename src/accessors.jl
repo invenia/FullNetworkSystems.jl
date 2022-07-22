@@ -63,9 +63,9 @@ get_pmin(system::System) = system.generator_time_series.pmin
 "Returns time series data of maximum generator output (pu)"
 get_pmax(system::System) = system.generator_time_series.pmax
 "Returns time series data of minimum generator output in the ancillary services market (pu)"
-get_regmin(system::System) = system.generator_time_series.regulation_min
+get_regulation_min(system::System) = system.generator_time_series.regulation_min
 "Returns time series data of maximum generator output in the ancillary services market (pu)"
-get_regmax(system::System) = system.generator_time_series.regulation_max
+get_regulation_max(system::System) = system.generator_time_series.regulation_max
 
 "Returns time series data of offer prices for ancillary servives regulation (\$ /pu)"
 get_regulation(system::System) = system.generator_time_series.asm_regulation
