@@ -4,3 +4,5 @@
 
 @deprecate get_regmin(system::System) get_regulation_min(system)
 @deprecate get_regmax(system::System) get_regulation_max(system)
+
+@deprecate get_load(system::System) get_loads(system)

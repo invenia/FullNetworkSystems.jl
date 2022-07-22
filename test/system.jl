@@ -219,7 +219,7 @@
                 @test get_lodfs(system) == lodfs
 
                 @test get_initial_generation(system) == initial_generation
-                @test get_load(system) == loads
+                @test get_loads(system) == loads
                 @test get_offer_curve(system) == offer_curve
                 @test get_pmin(system) == pmin
                 @test get_pmax(system) == pmax
@@ -268,6 +268,8 @@
 
                     @test (@test_deprecated get_regmin(system)) == regulation_min
                     @test (@test_deprecated get_regmax(system)) == regulation_max
+
+                    @test (@test_deprecated get_load(system)) == loads
                 end
             end
 
