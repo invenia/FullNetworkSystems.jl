@@ -84,7 +84,7 @@
         end
         generators = Dictionary(gen_ids, gen_types)
 
-        bus_names = ["A", "B", "C"]
+        bus_names = FullNetworkSystems.BusName["A", "B", "C"]
         bus_types = map(bus_names) do name
             Bus(name, 100.0)
         end
@@ -102,11 +102,14 @@
             ]
         )
 
+        # Bid IDs/names should be unique. Here length of IDs is arbitrary.
+        bid_names(prefix, n) = FullNetworkSystems.BidName.(prefix * "_" * randstring(5) for _ in 1:n)
+
         gens_per_bus = Dictionary(bus_names, rand(gen_ids, 3) for _ in bus_names)
-        incs_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
-        decs_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
-        psls_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
-        loads_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
+        incs_per_bus = Dictionary(bus_names, bid_names("inc", 3) for _ in bus_names)
+        decs_per_bus = Dictionary(bus_names, bid_names("dec", 3) for _ in bus_names)
+        psls_per_bus = Dictionary(bus_names, bid_names("psl", 3) for _ in bus_names)
+        loads_per_bus = Dictionary(bus_names, bid_names("load", 3) for _ in bus_names)
 
         lodfs = Dictionary(
             ["CONTIN_1"],
@@ -118,10 +121,9 @@
         datetimes = DateTime(2017, 12, 15):Hour(1):DateTime(2017, 12, 15, 23)
         time_series(T=Float64) = KeyedArray(rand(T, length(ids), length(datetimes)); ids, datetimes)
         services_time_series() = KeyedArray(vcat(rand(length(ids) - 1, length(datetimes)), fill(missing, 1, length(datetimes))); ids, datetimes)
-        offer_time_series() = KeyedArray(fill([(1.0, 100.0)], length(ids), length(datetimes)); ids, datetimes)
 
         initial_generation = KeyedArray([rand(length(ids) - 2); fill(0.0, 2)]; ids)
-        offer_curve = offer_time_series()
+        offer_curve = KeyedArray(fill([(1.0, 100.0)], length(ids), length(datetimes)); ids, datetimes)
         regulation_min = time_series()
         regulation_max = time_series()
         pmin = time_series()
@@ -152,9 +154,13 @@
         da_generator_status = GeneratorStatusDA(; hours_at_status, availability, must_run)
 
         loads = time_series()
-        increments = offer_time_series()
-        decrements = offer_time_series()
-        price_sensitive_loads = offer_time_series()
+
+        nbids = 8 # arbitrary
+        bid_time_series(prefix) = KeyedArray(fill([(1.0, 100.0)], nbids, length(datetimes)); ids=bid_names(prefix, nbids), datetimes)
+
+        increments = bid_time_series("inc")
+        decrements = bid_time_series("dec")
+        price_sensitive_loads = bid_time_series("psl")
         da_system = SystemDA(;
             gens_per_bus,
             incs_per_bus,
@@ -291,6 +297,11 @@
                 @test get_increments(da_system) == increments
                 @test get_decrements(da_system) == decrements
                 @test get_price_sensitive_loads(da_system) == price_sensitive_loads
+
+                virtuals = get_virtuals(da_system)
+                @test size(virtuals) == (nbids * 2, length(datetimes))
+                v_id_prefixes = first.(axiskeys(virtuals, 1), 3)
+                @test in("inc", v_id_prefixes) && in("dec", v_id_prefixes)
 
                 @test get_availability(da_system) == availability
                 @test get_must_run(da_system) == must_run

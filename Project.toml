@@ -1,7 +1,7 @@
 name = "FullNetworkSystems"
 uuid = "877b7152-b508-43dc-81fb-72341a693988"
 authors = ["Invenia Technical Computing Corporation"]
-version = "1.4.0"
+version = "1.5.0"
 
 [deps]
 AxisKeys = "94b1ba4f-4ee9-5380-92f1-94cde586c3c5"
@@ -18,7 +18,8 @@ InlineStrings = "1"
 julia = "1.6"
 
 [extras]
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Random", "Test"]
