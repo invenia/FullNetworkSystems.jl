@@ -259,25 +259,25 @@ Base.@kwdef struct GeneratorTimeSeries
     "Generator maximum output (pu)"
     pmax::KeyedArray{Float64, 2}
     """
-    Ancillary services regulation offer prices (\$ /pu). Generators not providing the service
-    will have `missing` offer data
+    Ancillary services regulation reserve offer prices (\$ /pu).
+    Generators not providing the service will have `missing` offer data.
     """
-    asm_regulation::KeyedArray{Union{Missing, Float64}, 2}
+    regulation_offers::KeyedArray{Union{Missing, Float64}, 2}
     """
-    Ancillary services spinning offer prices (\$ /pu). Generators not providing the service
-    will have `missing` offer data
+    Ancillary services spinning reserve offer prices (\$ /pu).
+    Generators not providing the service will have `missing` offer data.
     """
-    asm_spin::KeyedArray{Union{Missing, Float64}, 2}
+    spinning_offers::KeyedArray{Union{Missing, Float64}, 2}
     """
-    Ancillary services supplemental on offer prices (\$ /pu). Generators not providing the service
-    will have `missing` offer data
+    Ancillary services online supplemental reserve offer prices (\$ /pu).
+    Generators not providing the service will have `missing` offer data.
     """
-    asm_sup_on::KeyedArray{Union{Missing, Float64}, 2}
+    on_supplemental_offers::KeyedArray{Union{Missing, Float64}, 2}
     """
-    Ancillary services supplemental off offer prices (\$ /pu). Generators not providing the service
-    will have `missing` offer data
+    Ancillary services offline supplemental reserve offer prices (\$ /pu).
+    Generators not providing the service will have `missing` offer data.
     """
-    asm_sup_off::KeyedArray{Union{Missing, Float64}, 2}
+    off_supplemental_offers::KeyedArray{Union{Missing, Float64}, 2}
 end
 
 """
@@ -296,7 +296,7 @@ Fields:
 $TYPEDFIELDS
 """
 Base.@kwdef struct GeneratorStatusDA <: GeneratorStatus
-    "Hours each generator has been at its current status at the start of the day"
+    "Hours each generator has been at its current commitment status at the start of the day"
     hours_at_status::KeyedArray{Float64, 1}
     "Flag indicating if the generator is available to be committed in each hour"
     availability::KeyedArray{Bool, 2}
@@ -314,9 +314,9 @@ $TYPEDFIELDS
 """
 Base.@kwdef struct GeneratorStatusRT <: GeneratorStatus
     "Generator commitment status indicated by a `Bool`"
-    status::KeyedArray{Bool, 2}
+    commitment::KeyedArray{Bool, 2}
     "Generator regulation commitment status indicated by a `Bool`"
-    status_regulation::KeyedArray{Bool, 2}
+    regulation_commitment::KeyedArray{Bool, 2}
 end
 
 """
@@ -348,10 +348,10 @@ Base.@kwdef mutable struct SystemDA <: System
     "`Dictionary` where the keys are bus names and the values are decrement bid ids at that bus"
     decs_per_bus::Dictionary{BusName, Vector{BidName}}
     """
-    `Dictionary` where the keys are bus names and the values are price sensitive demand bid
+    `Dictionary` where the keys are bus names and the values are price sensitive load bid
     ids at that bus
     """
-    psds_per_bus::Dictionary{BusName, Vector{BidName}}
+    psls_per_bus::Dictionary{BusName, Vector{BidName}}
     "`Dictionary` where the keys are bus names and the values are load ids at that bus"
     loads_per_bus::Dictionary{BusName, Vector{BidName}}
 
@@ -368,7 +368,7 @@ Base.@kwdef mutable struct SystemDA <: System
     by the keys of the `Dictionary`. Each entry is a `KeyedArray` with axis keys
     `branch names x branch on outage`
     """
-    lodf::Dictionary{String, KeyedArray{Float64, 2}}
+    lodfs::Dictionary{String, KeyedArray{Float64, 2}}
     """
     Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
     `branch names x bus names`
@@ -387,11 +387,11 @@ Base.@kwdef mutable struct SystemDA <: System
 
     # Virtuals/PSD time series
     "Increment bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
-    increment::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    increments::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
     "Decrement bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
-    decrement::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
-    "Price sensitive demand bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
-    price_sensitive_demand::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    decrements::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    "Price sensitive load bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
+    price_sensitive_loads::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
 end
 
 """
@@ -421,7 +421,7 @@ Base.@kwdef mutable struct SystemRT <: System
     by the keys of the `Dictionary`. Each entry is a `KeyedArray` with axis keys
     `branch names x branch on outage`
     """
-    lodf::Dictionary{String, KeyedArray{Float64, 2}}
+    lodfs::Dictionary{String, KeyedArray{Float64, 2}}
     """
     Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
     `branch names x bus names`

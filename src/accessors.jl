@@ -49,13 +49,13 @@ get_loads_per_bus(system::System) = system.loads_per_bus
 
 "Returns the power transfer distribution factor of the system."
 get_ptdf(system::System) = system.ptdf
-"Returns the line outage distribution factor matrix of the system for a set of contingencies."
-get_lodf(system::System) = system.lodf
+"Returns a `Dictionary` of the line outage distribution factor matrices for the `System` indexed by contingencies."
+get_lodfs(system::System) = system.lodfs
 
 "Returns the generation of the generator at the start of the time period (pu)"
 get_initial_generation(system::System) = system.generator_time_series.initial_generation
-"Returns time series data of the load in the system"
-get_load(system::System) = system.loads
+"Returns time series data of the fixed loads in the system"
+get_loads(system::System) = system.loads
 "Returns time series data of the generator offer curves"
 get_offer_curve(system::System) = system.generator_time_series.offer_curve
 "Returns time series data of minimum generator output (pu)"
@@ -63,18 +63,18 @@ get_pmin(system::System) = system.generator_time_series.pmin
 "Returns time series data of maximum generator output (pu)"
 get_pmax(system::System) = system.generator_time_series.pmax
 "Returns time series data of minimum generator output in the ancillary services market (pu)"
-get_regmin(system::System) = system.generator_time_series.regulation_min
+get_regulation_min(system::System) = system.generator_time_series.regulation_min
 "Returns time series data of maximum generator output in the ancillary services market (pu)"
-get_regmax(system::System) = system.generator_time_series.regulation_max
+get_regulation_max(system::System) = system.generator_time_series.regulation_max
 
-"Returns time series data of offer prices for ancillary servives regulation (\$ /pu)"
-get_regulation(system::System) = system.generator_time_series.asm_regulation
-"Returns time series data of offer prices for ancillary servives spinning (\$ /pu)"
-get_spinning(system::System) = system.generator_time_series.asm_spin
-"Returns time series data of offer prices for ancillary servives supplemental on (\$ /pu)"
-get_supplemental_on(system::System) = system.generator_time_series.asm_sup_on
-"Returns time series data of offer prices for ancillary servives supplemental off (\$ /pu)"
-get_supplemental_off(system::System) = system.generator_time_series.asm_sup_off
+"Returns time series data of offer prices for ancillary servives regulation reserves (\$ /pu)"
+get_regulation_offers(system::System) = system.generator_time_series.regulation_offers
+"Returns time series data of offer prices for ancillary servives spinning reserves (\$ /pu)"
+get_spinning_offers(system::System) = system.generator_time_series.spinning_offers
+"Returns time series data of offer prices for ancillary servives online supplemental reserves (\$ /pu)"
+get_on_supplemental_offers(system::System) = system.generator_time_series.on_supplemental_offers
+"Returns time series data of offer prices for ancillary servives offline supplemental reserves (\$ /pu)"
+get_off_supplemental_offers(system::System) = system.generator_time_series.off_supplemental_offers
 
 "Returns a flag indicating whether each generator was on at the start of the day."
 function get_initial_commitment(system::SystemDA)
@@ -97,26 +97,25 @@ end
 get_incs_per_bus(system::SystemDA) = system.incs_per_bus
 "Returns a `Dictionary` of decrement bids at each bus."
 get_decs_per_bus(system::SystemDA) = system.decs_per_bus
-"Returns a `Dictionary` of price sensitive demand bids at each bus."
-get_psds_per_bus(system::SystemDA) = system.psds_per_bus
+"Returns a `Dictionary` of price sensitive load bids at each bus."
+get_psls_per_bus(system::SystemDA) = system.psls_per_bus
 
-"""
-Returns time series data of bids for the bid type indicated.  Bid type must be one of
-`:increment`, `:decrement` or `:price_sensitive_demand`.
-"""
-function get_bids(system::SystemDA, type_of_bid::Symbol)
-    return getproperty(system, type_of_bid)
-end
+"Returns time series data of increment bids."
+get_increments(system::SystemDA) = system.increments
+"Returns time series data of decrement bids."
+get_decrements(system::SystemDA) = system.decrements
+"Returns time series data of price sensitive load bids."
+get_price_sensitive_loads(system::SystemDA) = system.price_sensitive_loads
 
 "Returns time series data of flags indicating if the generator is available to be committed in each hour"
 get_availability(system::SystemDA) = system.generator_status.availability
 "Returns time series data of flags indicating if the generator must be committed in each hour"
 get_must_run(system::SystemDA) = system.generator_status.must_run
 
-"Returns time series data of generator status in each hour"
-get_commitment(system::SystemRT) = system.generator_status.status
-"Returns time series data of generator regulation status in each hour"
-get_regulation_commitment(system::SystemRT) = system.generator_status.status_regulation
+"Returns time series data of generator commitment status in each hour"
+get_commitment(system::SystemRT) = system.generator_status.commitment
+"Returns time series data of generator regulation commitment status in each hour"
+get_regulation_commitment(system::SystemRT) = system.generator_status.regulation_commitment
 
 """
     gens_per_zone(system::System)

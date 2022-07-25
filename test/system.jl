@@ -105,10 +105,10 @@
         gens_per_bus = Dictionary(bus_names, rand(gen_ids, 3) for _ in bus_names)
         incs_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
         decs_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
-        psds_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
+        psls_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
         loads_per_bus = Dictionary(bus_names, string.(rand('A':'Z', 3)) for _ in bus_names)
 
-        lodf = Dictionary(
+        lodfs = Dictionary(
             ["CONTIN_1"],
             [KeyedArray(rand(4, 1); branches=branch_names, branch=[first(branch_names)])]
         )
@@ -128,10 +128,10 @@
         pmax = time_series()
         pmin = time_series()
         pmax = time_series()
-        asm_regulation = services_time_series()
-        asm_spin = services_time_series()
-        asm_sup_on = services_time_series()
-        asm_sup_off = services_time_series()
+        regulation_offers = services_time_series()
+        spinning_offers = services_time_series()
+        on_supplemental_offers = services_time_series()
+        off_supplemental_offers = services_time_series()
 
         generator_time_series = GeneratorTimeSeries(;
             initial_generation,
@@ -140,10 +140,10 @@
             regulation_max,
             pmin,
             pmax,
-            asm_regulation,
-            asm_spin,
-            asm_sup_on,
-            asm_sup_off,
+            regulation_offers,
+            spinning_offers,
+            on_supplemental_offers,
+            off_supplemental_offers,
         )
 
         hours_at_status = KeyedArray(rand(length(ids)); ids)
@@ -152,33 +152,33 @@
         da_generator_status = GeneratorStatusDA(; hours_at_status, availability, must_run)
 
         loads = time_series()
-        increment = offer_time_series()
-        decrement = offer_time_series()
-        price_sensitive_demand = offer_time_series()
+        increments = offer_time_series()
+        decrements = offer_time_series()
+        price_sensitive_loads = offer_time_series()
         da_system = SystemDA(;
             gens_per_bus,
             incs_per_bus,
             decs_per_bus,
-            psds_per_bus,
+            psls_per_bus,
             loads_per_bus,
             zones,
             buses,
             generators,
             branches,
-            lodf,
+            lodfs,
             ptdf,
             generator_time_series,
             generator_status=da_generator_status,
             loads,
-            increment,
-            decrement,
-            price_sensitive_demand,
+            increments,
+            decrements,
+            price_sensitive_loads,
         )
         @test da_system isa SystemDA
 
-        status = time_series(Bool)
-        status_regulation = time_series(Bool)
-        rt_generator_status = GeneratorStatusRT(; status, status_regulation)
+        commitment = time_series(Bool)
+        regulation_commitment= time_series(Bool)
+        rt_generator_status = GeneratorStatusRT(; commitment, regulation_commitment)
 
         rt_system = SystemRT(;
             gens_per_bus,
@@ -187,7 +187,7 @@
             buses,
             generators,
             branches,
-            lodf,
+            lodfs,
             ptdf,
             generator_time_series,
             generator_status=rt_generator_status,
@@ -216,20 +216,20 @@
                 @test get_loads_per_bus(system) == loads_per_bus
 
                 @test get_ptdf(system) == ptdf
-                @test get_lodf(system) == lodf
+                @test get_lodfs(system) == lodfs
 
                 @test get_initial_generation(system) == initial_generation
-                @test get_load(system) == loads
+                @test get_loads(system) == loads
                 @test get_offer_curve(system) == offer_curve
                 @test get_pmin(system) == pmin
                 @test get_pmax(system) == pmax
-                @test get_regmin(system) == regulation_min
-                @test get_regmax(system) == regulation_max
+                @test get_regulation_min(system) == regulation_min
+                @test get_regulation_max(system) == regulation_max
 
-                @test skipmissing(get_regulation(system)) == skipmissing(asm_regulation)
-                @test skipmissing(get_spinning(system)) == skipmissing(asm_spin)
-                @test skipmissing(get_supplemental_on(system)) == skipmissing(asm_sup_on)
-                @test skipmissing(get_supplemental_off(system)) == skipmissing(asm_sup_off)
+                @test skipmissing(get_regulation_offers(system)) == skipmissing(regulation_offers)
+                @test skipmissing(get_spinning_offers(system)) == skipmissing(spinning_offers)
+                @test skipmissing(get_on_supplemental_offers(system)) == skipmissing(on_supplemental_offers)
+                @test skipmissing(get_off_supplemental_offers(system)) == skipmissing(off_supplemental_offers)
 
                 gens_by_zone = gens_per_zone(system)
                 @test issetequal(keys(gens_by_zone), [1, FullNetworkSystems.MARKET_WIDE_ZONE])
@@ -262,6 +262,20 @@
                 # Check that we can remove the PTDF
                 system.ptdf = missing
                 @test system.ptdf === missing
+
+                @testset "deprecated" begin
+                    @test (@test_deprecated get_lodf(system)) == lodfs
+
+                    @test (@test_deprecated get_regmin(system)) == regulation_min
+                    @test (@test_deprecated get_regmax(system)) == regulation_max
+
+                    @test (@test_deprecated get_load(system)) == loads
+
+                    @test (@test_deprecated skipmissing(get_regulation(system))) == skipmissing(regulation_offers)
+                    @test (@test_deprecated skipmissing(get_spinning(system))) == skipmissing(spinning_offers)
+                    @test (@test_deprecated skipmissing(get_supplemental_on(system))) == skipmissing(on_supplemental_offers)
+                    @test (@test_deprecated skipmissing(get_supplemental_off(system))) == skipmissing(off_supplemental_offers)
+                end
             end
 
             @testset "SystemDA only accessors" begin
@@ -272,19 +286,26 @@
 
                 @test get_incs_per_bus(da_system) == incs_per_bus
                 @test get_decs_per_bus(da_system) == decs_per_bus
-                @test get_psds_per_bus(da_system) == psds_per_bus
+                @test get_psls_per_bus(da_system) == psls_per_bus
 
-                @test get_bids(da_system, :increment) == increment
-                @test get_bids(da_system, :decrement) == decrement
-                @test get_bids(da_system, :price_sensitive_demand) == price_sensitive_demand
+                @test get_increments(da_system) == increments
+                @test get_decrements(da_system) == decrements
+                @test get_price_sensitive_loads(da_system) == price_sensitive_loads
 
                 @test get_availability(da_system) == availability
                 @test get_must_run(da_system) == must_run
+
+                @testset "deprecated" begin
+                    @test (@test_deprecated get_bids(da_system, :increment)) == increments
+                    @test (@test_deprecated get_bids(da_system, :decrement)) == decrements
+                    @test (@test_deprecated get_bids(da_system, :price_sensitive_demand)) == price_sensitive_loads
+                    @test (@test_deprecated get_psds_per_bus(da_system)) == psls_per_bus
+                end
             end
 
             @testset "SystemRT only accessors" begin
-                @test get_commitment(rt_system) == status
-                @test get_regulation_commitment(rt_system) == status_regulation
+                @test get_commitment(rt_system) == commitment
+                @test get_regulation_commitment(rt_system) == regulation_commitment
             end
         end
     end
