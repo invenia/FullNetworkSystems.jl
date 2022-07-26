@@ -1,5 +1,5 @@
 const MARKET_WIDE_ZONE = -9999
-const BidName = InlineString31
+const BidName = String
 const ZoneNum = Int64
 
 """
@@ -58,7 +58,7 @@ Base.@kwdef struct Generator
 end
 const Generators = Dictionary{UnitCode, Generator}
 
-const BusName = InlineString15
+const BusName = String
 """
     $TYPEDEF
 
@@ -75,7 +75,7 @@ Base.@kwdef struct Bus
 end
 const Buses = Dictionary{BusName, Bus}
 
-const BranchName = InlineString31
+const BranchName = String
 """
     $TYPEDEF
 
