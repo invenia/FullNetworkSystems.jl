@@ -243,11 +243,10 @@
                     @test v == gen_ids
                 end
 
-                zero_bp, one_bp, two_bp = branches_by_breakpoints(system)
+                zero_bp, one_bp, two_bp = branches_by_breakpoints(da_system)
                 @test zero_bp == ["3"]
-                @test one_bp == [] # unmonitored
+                @test one_bp == String[] #unmonitored
                 @test two_bp == ["1", "4"]
-                @test eltype(zero_bp) == eltype(one_bp) == eltype(two_bp) == FullNetworkSystems.BranchName
 
                 # Also test on a system with a 1-breakpoint branch
                 da_system.branches = Dictionary(
