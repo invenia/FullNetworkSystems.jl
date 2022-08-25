@@ -262,6 +262,7 @@
                 @test zero_bp == ["3"]
                 @test one_bp == ["2"]
                 @test two_bp == ["1", "4"]
+                @test eltype(zero_bp) == eltype(one_bp) == eltype(two_bp) == FullNetworkSystems.BranchName
                 da_system.branches = branches  # reset
 
                 # Check that we can remove the PTDF
