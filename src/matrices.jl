@@ -1,6 +1,6 @@
 """
-    ptdf(system::System; block_size, reference_bus_index) -> KeyedArray
-    ptdf(buses::DataFrame, branches::DataFrame; block_size, reference_bus_index) -> KeyedArray
+    compute_ptdf(system::System; block_size, reference_bus_index) -> KeyedArray
+    compute_ptdf(buses::DataFrame, branches::DataFrame; block_size, reference_bus_index) -> KeyedArray
 
 Takes a system, or tabular data for that system, representing a `M` branch, `N` bus grid
 and returns the `M * N` DC-Power Transfer Distribution Factor (DC-PTDF) matrix of the network.
@@ -17,14 +17,14 @@ For a ~15,000 bus system with aggregated borders, this is expected to take ~1 mi
 !!! note
     The input data must have no isolated components or islands.
 """
-function ptdf(system::System; block_size=13_000, reference_bus_index=1)
+function compute_ptdf(system::System; block_size=13_000, reference_bus_index=1)
     buses = DataFrame(get_buses(system))
     branches = DataFrame(get_branches(system))
     
-    return ptdf(buses, branches; block_size)
+    return compute_ptdf(buses, branches; block_size)
 end
 
-function ptdf(buses::DataFrame, branches::DataFrame; block_size=13_000, reference_bus_index=1)
+function compute_ptdf(buses::DataFrame, branches::DataFrame; block_size=13_000, reference_bus_index=1)
     incid_matrix = _incidence(buses, branches)
     n_branches, n_buses = size(incid_matrix)
 
@@ -117,8 +117,9 @@ function _make_ax_ref(ax::AbstractVector)
 end
 
 """
-    lodf(system, branch_names_out) -> KeyedArray
-    lodf(buses, branches, ptdf, branch_names_out) -> KeyedArray
+    compute_lodf(system, branch_names_out) -> KeyedArray
+    compute_lodf(system::System, ptdf_matrix, branch_names_out) -> KeyedArray
+    compute_lodf(buses, branches, ptdf, branch_names_out) -> KeyedArray
 
 Returns the `M*O` DC-Line Outage Distribution Factor (DC-LODF) matrix of the network.
 
@@ -139,17 +140,24 @@ to ignore the lines coming in service.
     The resulting LODF matrix is sensitive to the input PTDF matrix. Using a thresholded
     PTDF as input might lead to imprecisions in constrast to using the full PTDF.
 """
-function lodf(system::System, branch_names_out)
+function compute_lodf(system::System, branch_names_out)
     buses = DataFrame(get_buses(system))
     branches = DataFrame(get_branches(system))
-    ptdf_mat = get_ptdf(system)
+    ptdf_matrix = get_ptdf(system)
 
-    ismissing(ptdf_mat) && throw(ArgumentError("System PTDF is missing."))
+    ismissing(ptdf_matrix) && throw(ArgumentError("System PTDF is missing."))
 
-    return lodf(buses, branches, ptdf_mat, branch_names_out)
+    return compute_lodf(buses, branches, ptdf_matrix, branch_names_out)
 end
 
-function lodf(buses::DataFrame, branches::DataFrame, ptdf_matrix, branch_names_out)
+function compute_lodf(system::System, ptdf_matrix, branch_names_out)
+    buses = DataFrame(get_buses(system))
+    branches = DataFrame(get_branches(system))
+
+    return compute_lodf(buses, branches, ptdf_matrix, branch_names_out)
+end
+
+function compute_lodf(buses::DataFrame, branches::DataFrame, ptdf_matrix, branch_names_out)
     branches_out = filter(:name => in(branch_names_out), branches)
 
     if length(unique(branches_out.name)) < length(unique(branch_names_out))

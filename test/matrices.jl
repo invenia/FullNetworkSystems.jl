@@ -97,7 +97,7 @@ end
         @test incidence isa SparseMatrixCSC
 
         @testset "no transformers" begin
-            ptdf_all_lines = FullNetworkSystems.ptdf(bus_df, branch_df)
+            ptdf_all_lines = compute_ptdf(bus_df, branch_df)
 
             # PTDF should be a branches x buses KeyedArray
             @test size(ptdf_all_lines) == (20, 14)
@@ -130,7 +130,7 @@ end
             incid_w_tr = FullNetworkSystems._incidence(bus_df, branches_with_transformers)
             @test incid_w_tr == incidence
 
-            ptdf_w_tr = FullNetworkSystems.ptdf(bus_df, branches_with_transformers)
+            ptdf_w_tr = compute_ptdf(bus_df, branches_with_transformers)
             @test axiskeys(ptdf_w_tr) == (branches_with_transformers.name, bus_df.name)
 
             ptdf_paper = ptdf_w_tr * incid_w_tr'
@@ -142,12 +142,12 @@ end
     end
 
     @testset "LODF" begin
-        ptdf_mat = FullNetworkSystems.ptdf(bus_df, branch_df)
+        ptdf_mat = FullNetworkSystems.compute_ptdf(bus_df, branch_df)
 
         branch_names_out = ["branch_2", "branch_6", "branch_11"]
         branch_names = branch_df.name
 
-        lodf_mat = FullNetworkSystems.lodf(bus_df, branch_df, ptdf_mat, branch_names_out)
+        lodf_mat = compute_lodf(bus_df, branch_df, ptdf_mat, branch_names_out)
         @test axiskeys(lodf_mat) == (branch_names, branch_names_out)
 
         # Based on "Direct Calculation of Line Outage Distribution Factors" by Guo et al.
@@ -178,8 +178,8 @@ end
             @test all(!=(0), flc(setdiff(branch_names, branch_names_out)))
         end
         @testset "LODF is consistent for different input orders" begin
-            lodf1 = FullNetworkSystems.lodf(bus_df, branch_df, ptdf_mat, ["branch_2", "branch_6"])
-            lodf2 = FullNetworkSystems.lodf(bus_df, branch_df, ptdf_mat, ["branch_6", "branch_2"])
+            lodf1 = compute_lodf(bus_df, branch_df, ptdf_mat, ["branch_2", "branch_6"])
+            lodf2 = compute_lodf(bus_df, branch_df, ptdf_mat, ["branch_6", "branch_2"])
             for i in axiskeys(ptdf_mat, 1), j in ["branch_2", "branch_6"]
                 @test lodf1(i, j) == lodf2(i, j)
             end
@@ -236,23 +236,27 @@ end
         @test get_ptdf(sys) === missing
         @test get_lodfs(sys) == Dictionary()
 
-        @test FullNetworkSystems.ptdf(sys) == FullNetworkSystems.ptdf(bus_df, branch_df)
+        @test compute_ptdf(sys) == compute_ptdf(bus_df, branch_df) == ptdf(sys)
 
         @test_throws(
             ArgumentError("System PTDF is missing."),
-            FullNetworkSystems.lodf(sys, ["branch_2", "branch_6", "branch_11"])
+            compute_lodf(sys, ["branch_2", "branch_6", "branch_11"])
         )
 
-        # Add PTDF to system
-        sys.ptdf = FullNetworkSystems.ptdf(sys)
+        ptdf_sys = compute_ptdf(sys)
 
-        lodf_sys = FullNetworkSystems.lodf(sys, ["branch_2", "branch_6", "branch_11"])
-        lodf_df = FullNetworkSystems.lodf(
+        lodf_df = compute_lodf(
             bus_df,
             branch_df,
-            FullNetworkSystems.ptdf(sys),
+            ptdf_sys,
             ["branch_2", "branch_6", "branch_11"],
         )
-        @test lodf_sys == lodf_df
+        lodf_input_mat = compute_lodf(sys, ptdf_sys, ["branch_2", "branch_6", "branch_11"])
+
+        # Add PTDF to system
+        sys.ptdf = ptdf_sys
+        lodf_sys = compute_lodf(sys, ["branch_2", "branch_6", "branch_11"])
+
+        @test lodf_sys == lodf_input_mat == lodf_df
     end
 end

@@ -17,7 +17,7 @@ export gens_per_zone, branches_by_breakpoints, get_datetimes
 export get_zones, get_buses, get_generators, get_branches, get_lines, get_transformers
 export get_regulation_requirements, get_operating_reserve_requirements, get_good_utility_requirements
 export get_gens_per_bus, get_loads_per_bus, get_incs_per_bus, get_decs_per_bus, get_psls_per_bus
-export get_ptdf, get_lodfs
+export compute_ptdf, get_ptdf, ptdf, compute_lodf, get_lodfs
 export get_initial_commitment, get_initial_downtime, get_initial_uptime
 export get_increments, get_decrements, get_virtuals, get_price_sensitive_loads
 export get_availability, get_must_run
