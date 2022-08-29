@@ -1,10 +1,13 @@
 module FullNetworkSystems
 
 using AxisKeys
+using DataFrames
 using Dates
 using Dictionaries
 using DocStringExtensions
 using InlineStrings
+using LinearAlgebra
+using SparseArrays
 
 export System, SystemDA, SystemRT
 export Zone, Generator, Bus, Branch
@@ -25,6 +28,8 @@ export get_commitment, get_regulation_commitment
 
 include("system.jl")
 include("accessors.jl")
+include("block_inv.jl")
+include("matrices.jl")
 include("deprecated.jl")
 
 end
