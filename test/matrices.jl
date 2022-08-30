@@ -208,7 +208,9 @@ end
         @test get_ptdf(sys) === missing
         @test get_lodfs(sys) == Dictionary()
 
-        @test compute_ptdf(sys) == compute_ptdf(buses, branches) == ptdf(sys)
+        @test compute_ptdf(sys) == compute_ptdf(buses, branches) == retrieve_ptdf(sys)
+        # Double check nothing has set the system PTDF
+        @test get_ptdf(sys) === missing
 
         @test_throws(
             ArgumentError("System PTDF is missing."),
