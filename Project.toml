@@ -1,7 +1,7 @@
 name = "FullNetworkSystems"
 uuid = "877b7152-b508-43dc-81fb-72341a693988"
 authors = ["Invenia Technical Computing Corporation"]
-version = "1.6.0"
+version = "1.7.0"
 
 [deps]
 AxisKeys = "94b1ba4f-4ee9-5380-92f1-94cde586c3c5"
