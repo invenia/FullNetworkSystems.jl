@@ -9,7 +9,7 @@ For a ~15,000 bus system with aggregated borders, this is expected to take ~1 mi
 
 # Keywords
 - `block_size=13_000`: Block size to be used when partitioning a big matrix for inversion.
-- `reference_bus_index=1`: The index of the reference bus.
+- `reference_bus=first(keys(buses))`: The name of the reference bus.
 
 # Output
 - `::KeyedArray`: The PTDF matrix; the axes contain the branch names and bus numbers.
@@ -17,19 +17,24 @@ For a ~15,000 bus system with aggregated borders, this is expected to take ~1 mi
 !!! note
     The input data must have no isolated components or islands.
 """
-function compute_ptdf(system::System; block_size=13_000, reference_bus_index=1)
-    buses = DataFrame(get_buses(system))
-    branches = DataFrame(get_branches(system))
-    
-    return compute_ptdf(buses, branches; block_size)
+function compute_ptdf(system::System; kwargs...)
+    return compute_ptdf(get_buses(system), get_branches(system); kwargs...)
 end
 
-function compute_ptdf(buses::DataFrame, branches::DataFrame; block_size=13_000, reference_bus_index=1)
+function compute_ptdf(
+    buses::Buses,
+    branches::Branches;
+    block_size=13_000,
+    reference_bus=nothing,
+)
+    bus_names = collect(keys(buses))
+    reference_bus_index = _reference_bus(reference_bus, bus_names)
+
     incid_matrix = _incidence(buses, branches)
     n_branches, n_buses = size(incid_matrix)
 
     # Remove column related to reference bus from incidence matrix
-    incid_matrix = incid_matrix[:, setdiff(1:n_buses, reference_bus_index)]
+    incid_matrix = incid_matrix[:, Not(reference_bus_index)]
 
     B_fl_tilde = sparse(diagm(_series_susceptance(branches))) * incid_matrix
     B_bus_tilde_inv = big_mat_inv(
@@ -45,7 +50,15 @@ function compute_ptdf(buses::DataFrame, branches::DataFrame; block_size=13_000, 
         ptdf_matrix[:, reference_bus_index:end],
     )
 
-    return KeyedArray(ptdf_matrix, (branches.name, buses.name))
+    return KeyedArray(ptdf_matrix, (collect(keys(branches)), bus_names))
+end
+
+function _reference_bus(reference_bus, bus_names)
+    reference_bus === nothing && return 1
+
+    idx = findfirst(==(reference_bus), bus_names)
+    idx === nothing && throw(ArgumentError("Reference bus '$reference_bus' not found."))
+    return idx
 end
 
 """
@@ -54,22 +67,17 @@ end
 Calculates the susceptance of the elements in the branch DataFrame. The calculation is
 different depending if the element is a line (no tap) or transformer (tap present).
 """
-function _series_susceptance(branch_df)
-    n = size(branch_df, 1)
-    susceptance = Vector{Float64}(undef, n)
-    for i in 1:n
-        if branch_df.tap[i] === missing
-            susceptance[i] = -1 / branch_df.reactance[i]
-        else
-            susceptance[i] = imag(
-                1 / (
-                    (branch_df.resistance[i] + branch_df.reactance[i] * 1im) *
-                    (branch_df.tap[i] * exp(branch_df.angle[i] * 1im))
-                )
-            )
-        end
+function _series_susceptance(branches)
+    susceptance = map(_branch_susceptance, branches)
+    return collect(susceptance)
+end
+
+function _branch_susceptance(b)::Float64
+    if b.tap === missing
+        return -1 / b.reactance
     end
-    return susceptance
+
+    return imag(1 / ((b.resistance + b.reactance * 1im) * (b.tap * exp(b.angle * 1im))))
 end
 
 """
@@ -79,23 +87,23 @@ Returns the sparse edge-node incidence matrix related to the buses and branches 
 inputs. Matrix axes correspond to `(branches.name, buses.name)`
 """
 function _incidence(buses, branches)
-    n_buses = size(buses, 1)
-    n_branches = size(branches, 1)
+    n_buses = length(buses)
+    n_branches = length(branches)
 
     # Define the mapping of buses/branches to the incidence/PTDF matrix
-    bus_lookup = _make_ax_ref(buses.name)
+    bus_lookup = _make_ax_ref(buses)
 
     # Compute incidence matrix
     A_to = sparse(
         1:n_branches,
-        [bus_lookup[b] for b in branches.to_bus],
+        [bus_lookup[b.to_bus] for b in branches],
         fill(-1, n_branches),
         n_branches,
         n_buses
     )
     A_from = sparse(
         1:n_branches,
-        [bus_lookup[b] for b in branches.from_bus],
+        [bus_lookup[b.from_bus] for b in branches],
         fill(1, n_branches),
         n_branches,
         n_buses
@@ -105,15 +113,8 @@ function _incidence(buses, branches)
     return incid_matrix
 end
 
-function _make_ax_ref(ax::AbstractVector)
-    ref = Dict{eltype(ax), Int}()
-    for (ix, el) in enumerate(ax)
-        if haskey(ref, el)
-            @error("Repeated index element $el. Index sets must have unique elements.")
-        end
-        ref[el] = ix
-    end
-    return ref
+function _make_ax_ref(ax::Dictionary)
+    return Dictionary(keys(ax), 1:length(ax))
 end
 
 """
@@ -141,26 +142,24 @@ to ignore the lines coming in service.
     PTDF as input might lead to imprecisions in constrast to using the full PTDF.
 """
 function compute_lodf(system::System, branch_names_out)
-    buses = DataFrame(get_buses(system))
-    branches = DataFrame(get_branches(system))
     ptdf_matrix = get_ptdf(system)
-
     ismissing(ptdf_matrix) && throw(ArgumentError("System PTDF is missing."))
 
-    return compute_lodf(buses, branches, ptdf_matrix, branch_names_out)
+    return compute_lodf(system, ptdf_matrix, branch_names_out)
 end
 
 function compute_lodf(system::System, ptdf_matrix, branch_names_out)
-    buses = DataFrame(get_buses(system))
-    branches = DataFrame(get_branches(system))
+    buses = get_buses(system)
+    branches = get_branches(system)
 
     return compute_lodf(buses, branches, ptdf_matrix, branch_names_out)
 end
 
-function compute_lodf(buses::DataFrame, branches::DataFrame, ptdf_matrix, branch_names_out)
-    branches_out = filter(:name => in(branch_names_out), branches)
+function compute_lodf(buses::Buses, branches::Branches, ptdf_matrix, branch_names_out)
+    branch_out_names = collect(filter(in(branch_names_out), keys(branches)))
+    branches_out = getindices(branches, branch_out_names)
 
-    if length(unique(branches_out.name)) < length(unique(branch_names_out))
+    if length(branch_out_names) < length(unique(branch_names_out))
         @debug("Some of the lines to go out were not found in the line data.")
     end
 
@@ -174,9 +173,8 @@ function compute_lodf(buses::DataFrame, branches::DataFrame, ptdf_matrix, branch
 
     incid_out = _incidence(buses, branches_out)
 
-    branch_names = branches.name
-    branch_out_names = branches_out.name
-    branch_lookup = _make_ax_ref(branch_names)
+    branch_names = collect(keys(branches))
+    branch_lookup = _make_ax_ref(branches)
 
     # Our monitored lines are all the lines
     ptdf_mo = ptdf_matrix.data * incid_out'

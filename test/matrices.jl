@@ -1,109 +1,92 @@
-bus_df = DataFrame(name = string.("bus_", collect(1:14)))
-
-branch_df = DataFrame(
-    from_bus = string.("bus_", [1, 1, 2, 2, 2, 3, 4, 4, 4, 5, 6, 6, 6, 7, 7, 9, 9, 10, 12, 13]),
-    to_bus = string.("bus_", [2, 5, 3, 4, 5, 4, 5, 7, 9, 6, 11, 12, 13, 8, 9, 10, 14, 11, 13, 14]),
-    resistance = [
-        0.01938,
-        0.05403,
-        0.04699,
-        0.05811,
-        0.05695,
-        0.06701,
-        0.01335,
-        0.0,
-        0.0,
-        0.0,
-        0.09498,
-        0.12291,
-        0.06615,
-        0.0,
-        0.0,
-        0.03181,
-        0.12711,
-        0.08205,
-        0.22092,
-        0.17093,
-    ],
-    reactance = [
-        0.05917,
-        0.22304,
-        0.19797,
-        0.17632,
-        0.17388,
-        0.17103,
-        0.04211,
-        0.20912,
-        0.55618,
-        0.25202,
-        0.19890,
-        0.25581,
-        0.13027,
-        0.17615,
-        0.11001,
-        0.08450,
-        0.27038,
-        0.19207,
-        0.19988,
-        0.34802,
-    ],
-    name = string.("branch_", collect(1:20)),
-    angle = missings(20),
-    tap = missings(20),
-)
-function _to_branch_nt(nt)
-    return (
-        name=nt.name, 
-        to_bus=nt.to_bus, 
-        from_bus=nt.from_bus, 
-        resistance=nt.resistance, 
-        reactance=nt.reactance, 
+function _to_branch(nt)
+    return Branch(;
+        nt...,
         tap=missing,
         angle=missing,
-        is_transformer=false,
         # fill unused fields with zeroes
         rate_a=0,
-        rate_b=0, 
-        is_monitored=false, 
-        break_points=(0,0), 
-        penalties=(0,0), 
+        rate_b=0,
+        is_monitored=false,
+        break_points=(0,0),
+        penalties=(0,0),
     )
 end
 
-function _to_transformer_nt(nt)
-    return (
-        name=nt.name, 
-        to_bus=nt.to_bus, 
-        from_bus=nt.from_bus, 
-        resistance=nt.resistance, 
-        reactance=nt.reactance,
+branch_nt = NamedTuple{(:name, :to_bus, :from_bus, :resistance, :reactance)}.([
+    ("branch_1", "bus_2", "bus_1", 0.01938, 0.05917),
+    ("branch_2", "bus_5", "bus_1", 0.05403, 0.22304),
+    ("branch_3", "bus_3", "bus_2", 0.04699, 0.19797),
+    ("branch_4", "bus_4", "bus_2", 0.05811, 0.17632),
+    ("branch_5", "bus_5", "bus_2", 0.05695, 0.17388),
+    ("branch_6", "bus_4", "bus_3", 0.06701, 0.17103),
+    ("branch_7", "bus_5", "bus_4", 0.01335, 0.04211),
+    ("branch_8", "bus_7", "bus_4", 0.0, 0.20912),
+    ("branch_9", "bus_9", "bus_4", 0.0, 0.55618),
+    ("branch_10", "bus_6", "bus_5", 0.0, 0.25202),
+    ("branch_11", "bus_11", "bus_6", 0.09498, 0.1989),
+    ("branch_12", "bus_12", "bus_6", 0.12291, 0.25581),
+    ("branch_13", "bus_13", "bus_6", 0.06615, 0.13027),
+    ("branch_14", "bus_8", "bus_7", 0.0, 0.17615),
+    ("branch_15", "bus_9", "bus_7", 0.0, 0.11001),
+    ("branch_16", "bus_10", "bus_9", 0.03181, 0.0845),
+    ("branch_17", "bus_14", "bus_9", 0.12711, 0.27038),
+    ("branch_18", "bus_11", "bus_10", 0.08205, 0.19207),
+    ("branch_19", "bus_13", "bus_12", 0.22092, 0.19988),
+    ("branch_20", "bus_14", "bus_13", 0.17093, 0.34802),
+])
+
+branches = index(b -> getfield(b, :name), _to_branch.(branch_nt))
+branch_names = collect(keys(branches))
+
+bus_names = string.("bus_", collect(1:14))
+buses = Buses(bus_names, Bus.(bus_names, 1))
+
+function _to_transformer(br)
+    return Branch(
+        name=string(br.name, "_T"),
+        to_bus=br.to_bus,
+        from_bus=br.from_bus,
+        rate_a=br.rate_a,
+        rate_b=br.rate_b,
+        is_monitored=br.is_monitored,
+        break_points=br.break_points,
+        penalties=br.penalties,
+        resistance=br.resistance,
+        reactance=br.reactance,
         tap=1,
         angle=1,
-        is_transformer=true,
-        # fill unused fields with zeroes
-        rate_a=0,
-        rate_b=0, 
-        is_monitored=false, 
-        break_points=(0,0), 
-        penalties=(0,0), 
     )
 end
 
 @testset "matrices" begin
     @testset "PTDF and incidence" begin
-        incidence = FullNetworkSystems._incidence(bus_df, branch_df)
+        incidence = FullNetworkSystems._incidence(buses, branches)
 
         @test size(incidence) == (20, 14)
         @test incidence isa SparseMatrixCSC
 
         @testset "no transformers" begin
-            ptdf_all_lines = compute_ptdf(bus_df, branch_df)
+            ptdf_all_lines = compute_ptdf(buses, branches)
 
             # PTDF should be a branches x buses KeyedArray
             @test size(ptdf_all_lines) == (20, 14)
             @test ptdf_all_lines isa KeyedArray
             # Test if axes and lookup are correct
-            @test axiskeys(ptdf_all_lines) == (branch_df.name, bus_df.name)
+            @test axiskeys(ptdf_all_lines) == (branch_names, bus_names)
+
+            @testset "reference_bus" begin
+                @test all(≈(0.0; atol=1e-3), ptdf_all_lines(:, "bus_1"))
+                @test any(>(0.0 + 1e-3), ptdf_all_lines(:, "bus_5"))
+
+                ptdf_bus_5 = compute_ptdf(buses, branches, reference_bus="bus_5")
+                @test all(≈(0.0; atol=1e-3), ptdf_bus_5(:, "bus_5"))
+                @test any(>(0.0 + 1e-3), ptdf_bus_5(:, "bus_1"))
+
+                @test_throws(
+                    ArgumentError("Reference bus 'not_here' not found."),
+                    compute_ptdf(buses, branches, reference_bus="not_here"),
+                )
+            end
 
             # The tests based on "Direct Calculation of Line Outage Distribution Factors" by
             # Guo et al. involve a PTDF multiplied by an incidence matrix, so we multiply the
@@ -122,16 +105,18 @@ end
         end
 
         @testset "with_transformers" begin
-            branches_with_transformers = vcat(
-                DataFrame(_to_transformer_nt.(eachrow(branch_df)[1:2])),
-                DataFrame(_to_branch_nt.(eachrow(branch_df)[3:end])),
-            )
+            new_branches = _to_branch.(branch_nt)
+            new_branches[1] = _to_transformer(new_branches[1])
+            new_branches[2] = _to_transformer(new_branches[2])
 
-            incid_w_tr = FullNetworkSystems._incidence(bus_df, branches_with_transformers)
+            branches_with_transformers = index(b -> getfield(b, :name), new_branches)
+
+            incid_w_tr = FullNetworkSystems._incidence(buses, branches_with_transformers)
             @test incid_w_tr == incidence
 
-            ptdf_w_tr = compute_ptdf(bus_df, branches_with_transformers)
-            @test axiskeys(ptdf_w_tr) == (branches_with_transformers.name, bus_df.name)
+            ptdf_w_tr = compute_ptdf(buses, branches_with_transformers)
+            bt_names = collect(keys(branches_with_transformers))
+            @test axiskeys(ptdf_w_tr) == (bt_names, bus_names)
 
             ptdf_paper = ptdf_w_tr * incid_w_tr'
             # Transformer branches are calculated differently
@@ -142,12 +127,10 @@ end
     end
 
     @testset "LODF" begin
-        ptdf_mat = FullNetworkSystems.compute_ptdf(bus_df, branch_df)
-
+        ptdf_mat = FullNetworkSystems.compute_ptdf(buses, branches)
         branch_names_out = ["branch_2", "branch_6", "branch_11"]
-        branch_names = branch_df.name
 
-        lodf_mat = compute_lodf(bus_df, branch_df, ptdf_mat, branch_names_out)
+        lodf_mat = compute_lodf(buses, branches, ptdf_mat, branch_names_out)
         @test axiskeys(lodf_mat) == (branch_names, branch_names_out)
 
         # Based on "Direct Calculation of Line Outage Distribution Factors" by Guo et al.
@@ -161,10 +144,10 @@ end
         @testset "LODF values when a monitored line goes out" begin
             # Lines 2, 6, and 11 are going out, but are also monitored. Check if their
             # post-contingency flow will be set to zero considering an arbitrary `pnet`.
-            pnet = KeyedArray([fill(1.0, 7); fill(-1.0, 7)], bus_df.name)
+            pnet = KeyedArray([fill(1.0, 7); fill(-1.0, 7)], bus_names)
 
             fl = KeyedArray(
-                [sum(ptdf_mat(m, n) * pnet(n) for n in bus_df.name) for m in branch_names],
+                [sum(ptdf_mat(m, n) * pnet(n) for n in bus_names) for m in branch_names],
                 branch_names
             )
             flc = KeyedArray(
@@ -178,8 +161,8 @@ end
             @test all(!=(0), flc(setdiff(branch_names, branch_names_out)))
         end
         @testset "LODF is consistent for different input orders" begin
-            lodf1 = compute_lodf(bus_df, branch_df, ptdf_mat, ["branch_2", "branch_6"])
-            lodf2 = compute_lodf(bus_df, branch_df, ptdf_mat, ["branch_6", "branch_2"])
+            lodf1 = compute_lodf(buses, branches, ptdf_mat, ["branch_2", "branch_6"])
+            lodf2 = compute_lodf(buses, branches, ptdf_mat, ["branch_6", "branch_2"])
             for i in axiskeys(ptdf_mat, 1), j in ["branch_2", "branch_6"]
                 @test lodf1(i, j) == lodf2(i, j)
             end
@@ -193,20 +176,9 @@ end
             (String[], String[]),
         )
 
-        branches = map(eachrow(branch_df)) do br
-            Branch(;
-                br...,
-                rate_a=0,
-                rate_b=0,
-                is_monitored=false,
-                break_points=(0, 0),
-                penalties=(0, 0),
-            )
-        end
-
         sys = SystemRT(
-            buses=Buses(bus_df.name, Bus.(bus_df.name, 1.0)),
-            branches=Branches(branch_df.name, branches),
+            buses=buses,
+            branches=branches,
             ptdf=missing,
             lodfs=Dictionary(),
             # Fill in the rest with nonsense (unused)
@@ -236,7 +208,7 @@ end
         @test get_ptdf(sys) === missing
         @test get_lodfs(sys) == Dictionary()
 
-        @test compute_ptdf(sys) == compute_ptdf(bus_df, branch_df) == ptdf(sys)
+        @test compute_ptdf(sys) == compute_ptdf(buses, branches) == ptdf(sys)
 
         @test_throws(
             ArgumentError("System PTDF is missing."),
@@ -246,8 +218,8 @@ end
         ptdf_sys = compute_ptdf(sys)
 
         lodf_df = compute_lodf(
-            bus_df,
-            branch_df,
+            buses,
+            branches,
             ptdf_sys,
             ["branch_2", "branch_6", "branch_11"],
         )
