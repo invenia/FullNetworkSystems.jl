@@ -49,6 +49,9 @@ get_loads_per_bus(system::System) = system.loads_per_bus
 
 "Returns the power transfer distribution factor of the system."
 get_ptdf(system::System) = system.ptdf
+"Returns the power transfer distribution factor of the system. Calculates it if missing from system"
+retrieve_ptdf(system::System) = coalesce(get_ptdf(system), compute_ptdf(system))
+
 "Returns a `Dictionary` of the line outage distribution factor matrices for the `System` indexed by contingencies."
 get_lodfs(system::System) = system.lodfs
 

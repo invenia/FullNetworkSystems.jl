@@ -1,7 +1,7 @@
 name = "FullNetworkSystems"
 uuid = "877b7152-b508-43dc-81fb-72341a693988"
 authors = ["Invenia Technical Computing Corporation"]
-version = "1.6.0"
+version = "1.7.0"
 
 [deps]
 AxisKeys = "94b1ba4f-4ee9-5380-92f1-94cde586c3c5"
@@ -9,6 +9,8 @@ Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Dictionaries = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 InlineStrings = "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
 AxisKeys = "0.2"
