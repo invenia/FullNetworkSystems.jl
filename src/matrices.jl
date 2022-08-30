@@ -1,8 +1,8 @@
 """
     compute_ptdf(system::System; block_size, reference_bus_index) -> KeyedArray
-    compute_ptdf(buses::DataFrame, branches::DataFrame; block_size, reference_bus_index) -> KeyedArray
+    compute_ptdf(buses::Buses, branches::Branches; block_size, reference_bus_index) -> KeyedArray
 
-Takes a system, or tabular data for that system, representing a `M` branch, `N` bus grid
+Takes a system, or data for that system, representing a `M` branch, `N` bus grid
 and returns the `M * N` DC-Power Transfer Distribution Factor (DC-PTDF) matrix of the network.
 
 For a ~15,000 bus system with aggregated borders, this is expected to take ~1 minute.
@@ -12,7 +12,7 @@ For a ~15,000 bus system with aggregated borders, this is expected to take ~1 mi
 - `reference_bus=first(keys(buses))`: The name of the reference bus.
 
 # Output
-- `::KeyedArray`: The PTDF matrix; the axes contain the branch names and bus numbers.
+- `::KeyedArray`: The PTDF matrix; the axes contain the branch and bus names.
 
 !!! note
     The input data must have no isolated components or islands.
@@ -62,9 +62,9 @@ function _reference_bus(reference_bus, bus_names)
 end
 
 """
-    _series_susceptance(branch_df) -> Vector{Float64}
+    _series_susceptance(branches) -> Vector{Float64}
 
-Calculates the susceptance of the elements in the branch DataFrame. The calculation is
+Calculates the susceptance of the elements in the branch Dictionary The calculation is
 different depending if the element is a line (no tap) or transformer (tap present).
 """
 function _series_susceptance(branches)
@@ -84,7 +84,7 @@ end
     _incidence(buses, branches) -> SparseMatrix
 
 Returns the sparse edge-node incidence matrix related to the buses and branches used as
-inputs. Matrix axes correspond to `(branches.name, buses.name)`
+inputs. Matrix axes correspond to `(keys(branches), keys(buses))`
 """
 function _incidence(buses, branches)
     n_buses = length(buses)
@@ -129,8 +129,8 @@ scenario does not have any line coming in service. We can also use this function
 to ignore the lines coming in service.
 
 # Inputs
-- `buses::DataFrame`
-- `branches::DataFrame`
+- `buses::Buses`
+- `branches::Branches`
 - `ptdf_matrix`: The pre-calculated PTDF matrix of the system
 - `branch_names_out`: The names of the branches that are going out in the contingency scenario.
 
