@@ -8,28 +8,38 @@ function get_datetimes(system::System)
     return axiskeys(system.generator_time_series.offer_curve, 2)
 end
 
-get_zones(system::System) = system.zones
+
+get_system_requirements(system::SystemDA) = system.requirements
 
 "Returns a `Dictionary` with zonal regulation requirements indexed by zone number."
-function get_regulation_requirements(system::System)
-    return map(system.zones) do zone
+function get_regulation_requirements(requirements::ZonalRequirements)
+    return map(requirements) do zone
         zone.regulation
     end
 end
 
 "Returns a `Dictionary` with zonal operating reserve requirements indexed by zone number."
-function get_operating_reserve_requirements(system::System)
-    return map(system.zones) do zone
+function get_operating_reserve_requirements(requirements::ZonalRequirements)
+    return map(requirements) do zone
         zone.operating_reserve
     end
 end
 
 "Returns a `Dictionary` with zonal good utility practice requirements indexed by zone number."
-function get_good_utility_requirements(system::System)
-    return map(system.zones) do zone
+function get_good_utility_requirements(requirements::ZonalRequirements)
+    return map(requirements) do zone
         zone.good_utility
     end
 end
+
+get_regulation_up_requirement(requirements::SystemWideRequirements) = requirements.regulation_up
+
+get_regulation_down_requirement(requirements::SystemWideRequirements) = requirements.regulation_down
+
+get_responsive_requirement(requirements::SystemWideRequirements) = requirements.responsive_regulation
+
+get_non_spinning_requirement(requirements::SystemWideRequirements) = requirements.non_spinning
+
 
 "Returns a `Dictionary` of `Bus` objects in the `System` indexed by bus name."
 get_buses(system::System) = system.buses
@@ -58,7 +68,7 @@ get_lodfs(system::System) = system.lodfs
 "Returns the generation of the generator at the start of the time period (pu)"
 get_initial_generation(system::System) = system.generator_time_series.initial_generation
 "Returns time series data of the fixed loads in the system"
-get_loads(system::System) = system.loads
+get_fixed_loads(system::System) = system.loads
 "Returns time series data of the generator offer curves"
 get_offer_curve(system::System) = system.generator_time_series.offer_curve
 "Returns time series data of minimum generator output (pu)"
@@ -70,14 +80,34 @@ get_regulation_min(system::System) = system.generator_time_series.regulation_min
 "Returns time series data of maximum generator output in the ancillary services market (pu)"
 get_regulation_max(system::System) = system.generator_time_series.regulation_max
 
+
+get_ancillary_services(system::SystemDA) = system.generator_time_series.ancillary_services
+
 "Returns time series data of offer prices for ancillary servives regulation reserves (\$ /pu)"
-get_regulation_offers(system::System) = system.generator_time_series.regulation_offers
+get_regulation_offers(ancillary_services::FourServices) = ancillary_services.regulation_offers
 "Returns time series data of offer prices for ancillary servives spinning reserves (\$ /pu)"
-get_spinning_offers(system::System) = system.generator_time_series.spinning_offers
+get_spinning_offers(ancillary_services::FourServices) = ancillary_services.spinning_offers
 "Returns time series data of offer prices for ancillary servives online supplemental reserves (\$ /pu)"
-get_on_supplemental_offers(system::System) = system.generator_time_series.on_supplemental_offers
+get_on_supplemental_offers(ancillary_services::FourServices) = ancillary_services.on_supplemental_offers
 "Returns time series data of offer prices for ancillary servives offline supplemental reserves (\$ /pu)"
-get_off_supplemental_offers(system::System) = system.generator_time_series.off_supplemental_offers
+get_off_supplemental_offers(ancillary_services::FourServices) = ancillary_services.off_supplemental_offers
+
+get_regulation_up_offers(ancillary_services::FiveServices) = ancillary_services.regulation_up_offers
+
+get_regulation_down_offers(ancillary_services::FiveServices) = ancillary_services.regulation_down_offers
+
+get_responsive_regulation_offers(ancillary_services::FiveServices) = ancillary_services.responsive_regulation_offers
+
+get_on_nonspinning_offers(ancillary_services::FiveServices) = ancillary_services.on_nonspinning_offers
+
+get_off_nonspinning_offers(ancillary_services::FiveServices) = ancillary_services.off_nonspinning_offers
+
+
+get_load_pmin(load_timeseries::LoadTimeSeries) = load_timeseries.pmin
+
+get_load_pmax(load_timeseries::LoadTimeSeries) = load_timeseries.pmax
+
+get_load_ancillary_services(system::SystemDA) = system.load_services.ancillary_services
 
 "Returns a flag indicating whether each generator was on at the start of the day."
 function get_initial_commitment(system::SystemDA)

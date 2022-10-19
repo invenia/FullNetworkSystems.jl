@@ -30,3 +30,13 @@ function get_bids(system::SystemDA, type_of_bid::Symbol)
         return getproperty(system, type_of_bid)
     end
 end
+
+@deprecate get_regulation_offers(system::System) get_regulation_offers(get_ancillary_services(system))
+@deprecate get_spinning_offers(system::System) get_spinning_offers(get_ancillary_services(system))
+@deprecate get_on_supplemental_offers(system::System) get_on_supplemental_offers(get_ancillary_services(system))
+@deprecate get_off_supplemental_offers(system::System) get_off_supplemental_offers(get_ancillary_services(system))
+
+@deprecate get_zones(system::System) get_requirements(system)
+@deprecate get_regulation_requirements(system::System) get_regulation_requirements(get_requirements(system))
+@deprecate get_operating_reserve_requirements(system::System) get_operating_reserve_requirements(get_requirements(system))
+@deprecate get_good_utility_requirements(system::System) get_good_utility_requirements(get_requirements(system))

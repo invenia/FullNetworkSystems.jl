@@ -2,6 +2,9 @@ const MARKET_WIDE_ZONE = -9999
 const BidName = InlineString31
 const ZoneNum = Int64
 
+
+abstract type SystemRequirements end
+
 """
     $TYPEDEF
 
@@ -22,7 +25,17 @@ Base.@kwdef struct Zone
     "Zonal good utility practice requirement (regulation + spinning) (pu)"
     good_utility::Float64
 end
-const Zones = Dictionary{ZoneNum, Zone}
+
+struct ZonalRequirements <: SystemRequirements
+    zones::Dictionary{ZoneNum, Zone}
+end
+
+struct SystemWideRequirements <: SystemRequirements
+    regulation_up::Float64
+    regulation_down::Float64
+    responsive_regulation::Float64
+    non_spinning::Float64
+end
 
 const UnitCode = Int64
 """
@@ -236,6 +249,39 @@ end
 
 ###### Time Series types ######
 
+abstract type AncillaryServices end
+
+struct FourServices <: AncillaryServices
+    """
+    Ancillary services regulation reserve offer prices (\$ /pu).
+    Generators not providing the service will have `missing` offer data.
+    """
+    regulation_offers::KeyedArray{Union{Missing, Float64}, 2}
+    """
+    Ancillary services spinning reserve offer prices (\$ /pu).
+    Generators not providing the service will have `missing` offer data.
+    """
+    spinning_offers::KeyedArray{Union{Missing, Float64}, 2}
+    """
+    Ancillary services online supplemental reserve offer prices (\$ /pu).
+    Generators not providing the service will have `missing` offer data.
+    """
+    on_supplemental_offers::KeyedArray{Union{Missing, Float64}, 2}
+    """
+    Ancillary services offline supplemental reserve offer prices (\$ /pu).
+    Generators not providing the service will have `missing` offer data.
+    """
+    off_supplemental_offers::KeyedArray{Union{Missing, Float64}, 2}
+end
+
+struct FiveServices <: AncillaryServices
+    regulation_up_offers::KeyedArray{Union{Missing, Float64}, 2}
+    regulation_down_offers::KeyedArray{Union{Missing, Float64}, 2}
+    responsive_regulation_offers::KeyedArray{Union{Missing, Float64}, 2}
+    on_nonspinning_offers::KeyedArray{Union{Missing, Float64}, 2}
+    off_nonspinning_offers::KeyedArray{Union{Missing, Float64}, 2}
+end
+
 """
     $TYPEDEF
 
@@ -258,26 +304,13 @@ Base.@kwdef struct GeneratorTimeSeries
     pmin::KeyedArray{Float64, 2}
     "Generator maximum output (pu)"
     pmax::KeyedArray{Float64, 2}
-    """
-    Ancillary services regulation reserve offer prices (\$ /pu).
-    Generators not providing the service will have `missing` offer data.
-    """
-    regulation_offers::KeyedArray{Union{Missing, Float64}, 2}
-    """
-    Ancillary services spinning reserve offer prices (\$ /pu).
-    Generators not providing the service will have `missing` offer data.
-    """
-    spinning_offers::KeyedArray{Union{Missing, Float64}, 2}
-    """
-    Ancillary services online supplemental reserve offer prices (\$ /pu).
-    Generators not providing the service will have `missing` offer data.
-    """
-    on_supplemental_offers::KeyedArray{Union{Missing, Float64}, 2}
-    """
-    Ancillary services offline supplemental reserve offer prices (\$ /pu).
-    Generators not providing the service will have `missing` offer data.
-    """
-    off_supplemental_offers::KeyedArray{Union{Missing, Float64}, 2}
+    ancillary_services::AncillaryServices
+end
+
+struct LoadTimeSeries
+    pmin::KeyedArray{Float64, 2}
+    pmax::KeyedArray{Float64, 2}
+    ancillary_services::AncillaryServices
 end
 
 """
@@ -356,7 +389,7 @@ Base.@kwdef mutable struct SystemDA <: System
     loads_per_bus::Dictionary{BusName, Vector{BidName}}
 
     "Zones in the `System`, which will also include a `Zone` entry for the market wide zone"
-    zones::Zones
+    requirements::SystemRequirements
     "Buses in the `System` indexed by bus name"
     buses::Buses
     "Generators in the `System` indexed by unit code"
@@ -383,7 +416,9 @@ Base.@kwdef mutable struct SystemDA <: System
 
     # Load time series
     "Load time series data. `KeyedArray` where the axis keys are `load ids x datetimes`"
-    loads::KeyedArray{Float64, 2}
+    fixed_loads::KeyedArray{Float64, 2}
+
+    load_services::Union{Missing, LoadTimeSeries}
 
     # Virtuals/PSD time series
     "Increment bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
@@ -409,7 +444,7 @@ Base.@kwdef mutable struct SystemRT <: System
     loads_per_bus::Dictionary{BusName, Vector{BidName}}
 
     "Zones in the `System`, which will also include a `Zone` entry for the market wide zone"
-    zones::Zones
+    requirements::SystemRequirements
     "Buses in the `System` indexed by bus name"
     buses::Buses
     "Generators in the `System` indexed by unit code"
