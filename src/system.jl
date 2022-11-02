@@ -25,6 +25,47 @@ end
 const Zones = Dictionary{ZoneNum, Zone}
 
 const UnitCode = Int64
+const GenId = Union{UnitCode, InlineString31}
+
+"""
+    $TYPEDEF
+
+Abstract type to describe generation-specific internals of generators.
+"""
+abstract type Technology end
+
+"""
+    $TYPEDEF
+
+Type to describe a single configuration of a combined cycle generator.
+
+Fields:
+$TYPEDFIELDS
+"""
+Base.@kwdef struct CombinedCycle <: Technology
+    "Id linking back to the resource this configuration is from"
+    parent::GenId
+    "Symbol describing the technology of the generator"
+    fuel_type::Symbol
+end
+# Handle string conversion
+CombinedCycle(parent::AbstractString, args...) = CombinedCycle(InlineString31(parent), args...)
+
+"""
+    $TYPEDEF
+
+Type to describe a generator with no alternate configurations.
+
+Fields:
+$TYPEDFIELDS
+"""
+Base.@kwdef struct SingleCycle <: Technology
+    "Symbol describing the technology of the generator"
+    fuel_type::Symbol
+end
+# Fall back to SingleCycle to avoid breaking change
+Base.convert(::Type{Technology}, fuel_type::Symbol) = SingleCycle(fuel_type)
+
 """
     $TYPEDEF
 
@@ -36,7 +77,7 @@ $TYPEDFIELDS
 """
 Base.@kwdef struct Generator
     "Generator id/unit code"
-    unit_code::UnitCode
+    unit_code::GenId
     "Number of the zone the generator is located in"
     zone::Int
     "Cost of turning on the generator (\$)"
@@ -53,10 +94,13 @@ Base.@kwdef struct Generator
     ramp_up::Float64
     "Rate at which the generator can decrease generation (pu/minute)"
     ramp_down::Float64
-    "Symbol describing the technology of the generator"
-    technology::Symbol
+    "Type describing the technology of the generator"
+    technology::Technology
 end
-const Generators = Dictionary{UnitCode, Generator}
+# Handle string conversion
+Generator(unit_code::AbstractString, args...) = Generator(InlineString31(unit_code), args...)
+
+const Generators = Dictionary{GenId, Generator}
 
 const BusName = InlineString15
 """

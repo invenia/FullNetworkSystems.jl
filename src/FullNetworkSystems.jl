@@ -11,6 +11,7 @@ using SparseArrays
 export System, SystemDA, SystemRT
 export Zone, Generator, Bus, Branch
 export Zones, Generators, Buses, Branches
+export SingleCycle, CombinedCycle
 export GeneratorTimeSeries, GeneratorStatus, GeneratorStatusDA, GeneratorStatusRT
 export gens_per_zone, branches_by_breakpoints, get_datetimes
 export get_zones, get_buses, get_generators, get_branches, get_lines, get_transformers

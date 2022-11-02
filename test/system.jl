@@ -19,6 +19,54 @@
             technology=:tech
         )
         @test gen1 isa Generator
+
+        gen2 = Generator(
+            unit_code="Gen2",
+            zone=1,
+            startup_cost=0.0,
+            shutdown_cost=1.0,
+            no_load_cost=1.0,
+            min_uptime=24.0,
+            min_downtime=24.0,
+            ramp_up=2.0,
+            ramp_down=2.0,
+            technology=SingleCycle(fuel_type=:tech)
+        )
+        @test gen2 isa Generator
+
+        gen3 = Generator(
+            unit_code="Gen3",
+            zone=1,
+            startup_cost=0.0,
+            shutdown_cost=1.0,
+            no_load_cost=1.0,
+            min_uptime=24.0,
+            min_downtime=24.0,
+            ramp_up=2.0,
+            ramp_down=2.0,
+            technology=CombinedCycle(
+                parent=111,
+                fuel_type=:tech,
+            ),
+        )
+        @test gen3 isa Generator
+
+        gen4 = Generator(
+            unit_code="Gen3",
+            zone=1,
+            startup_cost=0.0,
+            shutdown_cost=1.0,
+            no_load_cost=1.0,
+            min_uptime=24.0,
+            min_downtime=24.0,
+            ramp_up=2.0,
+            ramp_down=2.0,
+            technology=CombinedCycle(
+                parent="ParentGen",
+                fuel_type=:tech,
+            ),
+        )
+        @test gen4 isa Generator
     end
 
     @testset "Bus" begin
