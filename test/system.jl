@@ -6,22 +6,8 @@
     end
 
     @testset "Generator" begin
-        gen1 = Generator(
-            unit_code=111,
-            zone=1,
-            startup_cost=0.0,
-            shutdown_cost=1.0,
-            no_load_cost=1.0,
-            min_uptime=24.0,
-            min_downtime=24.0,
-            ramp_up=2.0,
-            ramp_down=2.0,
-            technology=:tech
-        )
-        @test gen1 isa Generator
-
         gen2 = Generator(
-            unit_code="Gen2",
+            unit_code="Gen1",
             zone=1,
             startup_cost=0.0,
             shutdown_cost=1.0,
@@ -34,25 +20,8 @@
         )
         @test gen2 isa Generator
 
-        gen3 = Generator(
-            unit_code="Gen3",
-            zone=1,
-            startup_cost=0.0,
-            shutdown_cost=1.0,
-            no_load_cost=1.0,
-            min_uptime=24.0,
-            min_downtime=24.0,
-            ramp_up=2.0,
-            ramp_down=2.0,
-            technology=CombinedCycle(
-                parent=111,
-                fuel_type=:tech,
-            ),
-        )
-        @test gen3 isa Generator
-
-        gen4 = Generator(
-            unit_code="Gen3",
+        gen2 = Generator(
+            unit_code="Gen2",
             zone=1,
             startup_cost=0.0,
             shutdown_cost=1.0,
@@ -66,7 +35,7 @@
                 fuel_type=:tech,
             ),
         )
-        @test gen4 isa Generator
+        @test gen2 isa Generator
     end
 
     @testset "Bus" begin
@@ -126,7 +95,7 @@
         zone_market = Zone(-9999, 3.0, 3.0, 3.0)
         zones = Dictionary([1, 2, -9999], [zone1, zone2, zone_market])
 
-        gen_ids = collect(111:1:120)
+        gen_ids = string.(111:1:120)
         gen_types = map(gen_ids) do id
             Generator(id, zone1.number, 0.0, 1.0, 1.0, 24.0, 24.0, 2.0, 2.0, :tech)
         end

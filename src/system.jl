@@ -25,7 +25,7 @@ end
 const Zones = Dictionary{ZoneNum, Zone}
 
 const UnitCode = Int64
-const GenId = Union{UnitCode, InlineString31}
+const GenId = InlineString31
 
 """
     $TYPEDEF
@@ -48,8 +48,6 @@ Base.@kwdef struct CombinedCycle <: Technology
     "Symbol describing the technology of the generator"
     fuel_type::Symbol
 end
-# Handle string conversion
-CombinedCycle(parent::AbstractString, args...) = CombinedCycle(InlineString31(parent), args...)
 
 """
     $TYPEDEF
@@ -97,8 +95,6 @@ Base.@kwdef struct Generator
     "Type describing the technology of the generator"
     technology::Technology
 end
-# Handle string conversion
-Generator(unit_code::AbstractString, args...) = Generator(InlineString31(unit_code), args...)
 
 const Generators = Dictionary{GenId, Generator}
 
@@ -386,7 +382,7 @@ $TYPEDFIELDS
 """
 Base.@kwdef mutable struct SystemDA <: System
     "`Dictionary` where the keys are bus names and the values are generator ids at that bus"
-    gens_per_bus::Dictionary{BusName, Vector{Int}}
+    gens_per_bus::Dictionary{BusName, Vector{GenId}}
     "`Dictionary` where the keys are bus names and the values are increment bid ids at that bus"
     incs_per_bus::Dictionary{BusName, Vector{BidName}}
     "`Dictionary` where the keys are bus names and the values are decrement bid ids at that bus"
@@ -448,10 +444,9 @@ $TYPEDFIELDS
 """
 Base.@kwdef mutable struct SystemRT <: System
     "`Dictionary` where the keys are bus names and the values are generator ids at that bus"
-    gens_per_bus::Dictionary{BusName, Vector{Int}}
+    gens_per_bus::Dictionary{BusName, Vector{GenId}}
     "`Dictionary` where the keys are bus names and the values are load ids at that bus"
     loads_per_bus::Dictionary{BusName, Vector{BidName}}
-
     "Zones in the `System`, which will also include a `Zone` entry for the market wide zone"
     zones::Zones
     "Buses in the `System` indexed by bus name"
