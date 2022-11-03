@@ -25,7 +25,7 @@ export get_initial_generation, get_loads, get_offer_curve
 export get_pmin, get_pmax, get_regulation_min, get_regulation_max
 export get_regulation_offers, get_spinning_offers, get_on_supplemental_offers, get_off_supplemental_offers
 export get_commitment, get_regulation_commitment
-export get_technologies, ccgs_per_parent
+export get_technologies, get_fuel_type, ccgs_per_parent
 
 include("system.jl")
 include("accessors.jl")

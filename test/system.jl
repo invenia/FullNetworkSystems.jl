@@ -100,8 +100,8 @@
             Generator(id, zone1.number, 0.0, 1.0, 1.0, 24.0, 24.0, 2.0, 2.0, :tech)
         end
 
-        ccg1_tech = CombinedCycle("1", :tech)
-        ccg2_tech = CombinedCycle("2", :tech)
+        ccg1_tech = CombinedCycle("1", :tech2)
+        ccg2_tech = CombinedCycle("2", :tech2)
         combined_gen_types = [
             Generator("116", zone1.number, 0.0, 1.0, 1.0, 24.0, 24.0, 2.0, 2.0, ccg1_tech)
             Generator("117", zone1.number, 0.0, 1.0, 1.0, 24.0, 24.0, 2.0, 2.0, ccg1_tech)
@@ -251,6 +251,9 @@
                     fill(ccg2_tech, 2)
                 )
                 @test get_technologies(system) == Dictionary(gen_ids, expected_tech)
+                @test get_fuel_type(system) == Dictionary(
+                    gen_ids, repeat([:tech, :tech2], inner=5)
+                )
                 @test ccgs_per_parent(system) == Dict(
                     "1" => ["116", "117", "118"], "2" => ["119", "120"],
                 )
