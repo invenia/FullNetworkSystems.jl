@@ -96,10 +96,20 @@
         zones = Dictionary([1, 2, -9999], [zone1, zone2, zone_market])
 
         gen_ids = string.(111:1:120)
-        gen_types = map(gen_ids) do id
+        single_gen_types = map(gen_ids[1:5]) do id
             Generator(id, zone1.number, 0.0, 1.0, 1.0, 24.0, 24.0, 2.0, 2.0, :tech)
         end
-        generators = Dictionary(gen_ids, gen_types)
+
+        ccg1_tech = CombinedCycle("1", :tech)
+        ccg2_tech = CombinedCycle("2", :tech)
+        combined_gen_types = [
+            Generator("116", zone1.number, 0.0, 1.0, 1.0, 24.0, 24.0, 2.0, 2.0, ccg1_tech)
+            Generator("117", zone1.number, 0.0, 1.0, 1.0, 24.0, 24.0, 2.0, 2.0, ccg1_tech)
+            Generator("118", zone1.number, 0.0, 1.0, 1.0, 24.0, 24.0, 2.0, 2.0, ccg1_tech)
+            Generator("119", zone1.number, 0.0, 1.0, 1.0, 24.0, 24.0, 2.0, 2.0, ccg2_tech)
+            Generator("120", zone1.number, 0.0, 1.0, 1.0, 24.0, 24.0, 2.0, 2.0, ccg2_tech)
+        ]
+        generators = Dictionary(gen_ids, vcat(single_gen_types, combined_gen_types))
 
         bus_names = FullNetworkSystems.BusName["A", "B", "C"]
         bus_types = map(bus_names) do name
@@ -234,6 +244,16 @@
                     ["1", "2", "3"], [branches["1"], branches["2"], branches["3"]]
                 )
                 @test get_transformers(system) == Dictionary(["4"], [branches["4"]])
+
+                expected_tech = vcat(
+                    fill(SingleCycle(:tech), 5),
+                    fill(ccg1_tech, 3),
+                    fill(ccg2_tech, 2)
+                )
+                @test get_technologies(system) == Dictionary(gen_ids, expected_tech)
+                @test ccgs_per_parent(system) == Dict(
+                    "1" => ["116", "117", "118"], "2" => ["119", "120"],
+                )
 
                 @test get_gens_per_bus(system) == gens_per_bus
                 @test get_loads_per_bus(system) == loads_per_bus

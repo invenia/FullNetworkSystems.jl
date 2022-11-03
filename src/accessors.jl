@@ -122,6 +122,23 @@ get_commitment(system::SystemRT) = system.generator_status.commitment
 "Returns time series data of generator regulation commitment status in each hour"
 get_regulation_commitment(system::SystemRT) = system.generator_status.regulation_commitment
 
+"Returns a `Dictionary` of `Technology`s indexed by Generator ID"
+get_technologies(system::System) = map(gen -> gen.technology, get_generators(system))
+
+"Returns all CombinedCycle generator configuration IDs keyed by the source generator"
+function ccgs_per_parent(system::System)
+    ccgs = Dict{GenId, Vector{GenId}}()
+
+    for gen in system.generators
+        gen.technology isa CombinedCycle || continue
+
+        config = get!(ccgs, gen.technology.parent, GenId[])
+        push!(config, gen.unit_code)
+    end
+
+    return ccgs
+end
+
 """
     gens_per_zone(system::System)
 
