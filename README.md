@@ -38,7 +38,7 @@ load = get_loads(system)
     sum(model[:generation][u, t] for u in units) == sum(load(l, t) for l in axiskeys(load, 1))
 )
 
-# for simplicity, assume units submitted a fixed price per MW, rather than a variable price offer curve
+# for simplicity, use a fixed price per MW, rather than a variable price offer curve
 offer_curves = get_offer_curve(system)
 prices = map(curve -> only(first.(curve)), offer_curves)
 cost = AffExpr()
@@ -47,7 +47,7 @@ for u in units, t in datetimes
 end
 
 @objective(model, Min, cost)
-# define a JuMP model for it
+
 set_optimizer(model, HiGHS.Optimizer)
 optimize!(model)
 ```
