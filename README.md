@@ -67,7 +67,7 @@ gen_time_series = GeneratorTimeSeries(;
     ...
 )
 ```
-The `GeneratorTimeSeries` type includes fields for additional time series such as generation limits, ramp limits and ancillary service offers, which means these features can be included in an optimisation problem (see [`GeneratorTimeSeries`](https://invenia.github.io/FullNetworkSystems.jl/dev/#FullNetworkSystems.GeneratorTimeSeries) for details of all the time series fields).
+The `GeneratorTimeSeries` type includes fields for additional time series such as generation limits, ramp limits and ancillary service offers, which means these features can be included in an optimisation problem (see [`GeneratorTimeSeries`](https://invenia.github.io/FullNetworkSystems.jl/stable/#FullNetworkSystems.GeneratorTimeSeries) for details of all the time series fields).
 `GeneratorStatus` types also contain time series data, specifically associated with the status of the generator (e.g. whether it is on or off, how long it has been on or off).
 This is useful for including factors such as ramp rates in an optimisation problem, as the status of a generator limits how much it can ramp up or down in a given hour.
 
@@ -91,7 +91,7 @@ The `System` types have fields to store these matrices.
 
 The following is an example of how the data stored in a `SystemRT` object can be used to build a JuMP model.
 The objective of the model is to solve a simple energy balance problem, where a set of loads (demands) need to be met by generation (supply), for the minimum possible cost.
-Assume we have built all the components of the system described in the previous sections so that we can construct an instance of a system (see [`SystemRT`](https://invenia.github.io/FullNetworkSystems.jl/dev/#FullNetworkSystems.SystemRT) for specific details of the components in a `SystemRT`).
+Assume we have built all the components of the system described in the previous sections so that we can construct an instance of a system (see [`SystemRT`](https://invenia.github.io/FullNetworkSystems.jl/stable/#FullNetworkSystems.SystemRT) for specific details of the components in a `SystemRT`).
 
 ```julia
 using AxisKeys
