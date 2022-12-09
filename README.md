@@ -99,6 +99,8 @@ using FullNetworkSystems
 using HiGHS
 using JuMP
 
+# Here we model a simple system where demands (loads) need to be met by supply for minimum cost
+# We assume all components are colocated, so do not model branch constraints or nodal injections
 system = SystemRT(
     gens_per_bus,
     loads_per_bus,
@@ -126,7 +128,7 @@ load = get_loads(system)
     sum(model[:generation][u, t] for u in units) == sum(load(l, t) for l in axiskeys(load, 1))
 )
 
-# for simplicity, use a fixed price per MW, rather than a variable price offer curve
+# For simplicity, use a fixed price per MW, rather than a variable price offer curve
 offer_curves = get_offer_curve(system)
 prices = map(curve -> only(first.(curve)), offer_curves)
 cost = AffExpr()
