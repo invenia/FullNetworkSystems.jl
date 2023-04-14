@@ -1,6 +1,7 @@
 const MARKET_WIDE_ZONE = -9999
 const BidName = InlineString31
 const ZoneNum = Int64
+const PriceSensitiveBid = Vector{Tuple{Float64, Float64}}
 
 """
     $TYPEDEF
@@ -23,6 +24,14 @@ Base.@kwdef struct Zone
     good_utility::Float64
 end
 const Zones = Dictionary{ZoneNum, Zone}
+
+Base.@kwdef struct FourRequirements
+    number::ZoneNum
+    regulation_up::Float64
+    regulation_down::Float64
+    responsive_regulation::Float64
+    non_spinning::Float64
+end
 
 const UnitCode = Int64
 """
@@ -236,6 +245,10 @@ end
 
 ###### Time Series types ######
 
+const AncillaryServiceTypes = Union{
+    KeyedArray{Union{Missing, Float64}, 2},
+    KeyedArray{Union{Missing, PriceSensitiveBid}, 2}
+}
 """
     $TYPEDEF
 
@@ -249,11 +262,11 @@ Base.@kwdef struct GeneratorTimeSeries
     "Generation of the generator at the start of the time period (pu)"
     initial_generation::KeyedArray{Float64, 1}
     "Generator offer curves. `KeyedArray` where the axis keys are `generator names x datetimes`"
-    offer_curve::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    offer_curve::KeyedArray{PriceSensitiveBid, 2}
     "Generator minimum output in the ancillary services market (pu)"
-    regulation_min::KeyedArray{Float64, 2}
+    regulation_min::Union{Missing, KeyedArray{Float64, 2}}
     "Generator maximum output in the ancillary services market (pu)"
-    regulation_max::KeyedArray{Float64, 2}
+    regulation_max::Union{Missing, KeyedArray{Float64, 2}}
     "Generator minimum output (pu)"
     pmin::KeyedArray{Float64, 2}
     "Generator maximum output (pu)"
@@ -262,22 +275,57 @@ Base.@kwdef struct GeneratorTimeSeries
     Ancillary services regulation reserve offer prices (\$ /pu).
     Generators not providing the service will have `missing` offer data.
     """
-    regulation_offers::KeyedArray{Union{Missing, Float64}, 2}
+    regulation_offers::AncillaryServiceTypes
     """
     Ancillary services spinning reserve offer prices (\$ /pu).
     Generators not providing the service will have `missing` offer data.
     """
-    spinning_offers::KeyedArray{Union{Missing, Float64}, 2}
+    spinning_offers::AncillaryServiceTypes
     """
     Ancillary services online supplemental reserve offer prices (\$ /pu).
     Generators not providing the service will have `missing` offer data.
     """
-    on_supplemental_offers::KeyedArray{Union{Missing, Float64}, 2}
+    on_supplemental_offers::AncillaryServiceTypes
     """
     Ancillary services offline supplemental reserve offer prices (\$ /pu).
     Generators not providing the service will have `missing` offer data.
     """
-    off_supplemental_offers::KeyedArray{Union{Missing, Float64}, 2}
+    off_supplemental_offers::AncillaryServiceTypes
+
+    """
+    Ancillary services regulation reserve offer prices (\$ /pu).
+    Generators not providing the service will have `missing` offer data.
+    Some market clearing formulations do not include this service, so the field will be set
+    to `missing` by default.
+    """
+    regulation_down_offers::Union{Missing, AncillaryServiceTypes} = missing
+end
+
+function GeneratorTimeSeries(
+    initial_generation,
+    offer_curve,
+    regulation_min,
+    regulation_max,
+    pmin,
+    pmax,
+    regulation_offers,
+    spinning_offers,
+    on_supplemental_offers,
+    off_supplemental_offers,
+)
+    return GeneratorTimeSeries(
+        initial_generation,
+        offer_curve,
+        regulation_min,
+        regulation_max,
+        pmin,
+        pmax,
+        regulation_offers,
+        spinning_offers,
+        on_supplemental_offers,
+        off_supplemental_offers,
+        missing
+    )
 end
 
 """
@@ -317,6 +365,31 @@ Base.@kwdef struct GeneratorStatusRT <: GeneratorStatus
     commitment::KeyedArray{Bool, 2}
     "Generator regulation commitment status indicated by a `Bool`"
     regulation_commitment::KeyedArray{Bool, 2}
+end
+
+struct LoadServices
+    pmin::KeyedArray{Float64, 2}
+    pmax::KeyedArray{Float64, 2}
+    regulation_up_offers::KeyedArray{Union{Missing, PriceSensitiveBid}, 2}
+    regulation_down_offers::KeyedArray{Union{Missing, PriceSensitiveBid}, 2}
+    spinning_offers::KeyedArray{Union{Missing, PriceSensitiveBid}, 2}
+    on_supplemental_offers::KeyedArray{Union{Missing, PriceSensitiveBid}, 2}
+    off_supplemental_offers::KeyedArray{Union{Missing, PriceSensitiveBid}, 2}
+end
+
+struct EnergyBids
+    """
+    Bool indicating whether the bid is part of a multi-hour block, where either all bids
+    must clear or none do.
+    """
+    multi_hour::KeyedArray{Bool, 2}
+    """
+    Bool indicating whether the bid is a fixed type which can only clear at the given price
+    and volume.
+    """
+    is_fixed_type::KeyedArray{Bool, 2}
+    "Bid curve, `KeyedArray` where the axis keys are `generator names x datetimes`."
+    bid_curve::KeyedArray{PriceSensitiveBid, 2}
 end
 
 """
@@ -387,11 +460,68 @@ Base.@kwdef mutable struct SystemDA <: System
 
     # Virtuals/PSD time series
     "Increment bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
-    increments::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    increments::KeyedArray{PriceSensitiveBid, 2}
     "Decrement bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
-    decrements::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    decrements::KeyedArray{PriceSensitiveBid, 2}
     "Price sensitive load bids time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
-    price_sensitive_loads::KeyedArray{Vector{Tuple{Float64, Float64}}, 2}
+    price_sensitive_loads::KeyedArray{PriceSensitiveBid, 2}
+end
+
+"""
+    $TYPEDEF
+
+Subtype of a `System` for modelling a purely financial style of day-ahead market clearing.
+Key differences to the physical day-ahead market clearing approach are that _all_ offers and
+bids are price sensitive and virtual participants are not distinguished from physical
+participants.
+
+Fields:
+$TYPEDFIELDS
+"""
+Base.@kwdef mutable struct FinancialSystemDA <: System
+    "`Dictionary` where the keys are bus names and the values are generator ids at that bus"
+    gens_per_bus::Dictionary{BusName, Vector{String}}
+    "`Dictionary` where the keys are bus names and the values are increment bid ids at that bus"
+    energy_offers_per_bus::Dictionary{BusName, Vector{BidName}}
+    "`Dictionary` where the keys are bus names and the values are decrement bid ids at that bus"
+    energy_bids_per_bus::Dictionary{BusName, Vector{BidName}}
+    "`Dictionary` where the keys are bus names and the values are load ids at that bus"
+    load_resources_per_bus::Dictionary{BusName, Vector{BidName}}
+
+    "Zones in the `System`, which will also include a `Requirements` entry for the market wide zone"
+    zones::Dictionary{ZoneNum, FourRequirements}
+    "Buses in the `System` indexed by bus name"
+    buses::Buses
+    "Generators in the `System` indexed by unit code"
+    generators::Generators
+    "Branches in the `System` indexed by branch name"
+    branches::Branches
+    """
+    The line outage distribution factor matrix of the system for a set of contingencies given
+    by the keys of the `Dictionary`. Each entry is a `KeyedArray` with axis keys
+    `branch names x branch on outage`
+    """
+    lodfs::Dictionary{String, KeyedArray{Float64, 2}}
+    """
+    Power transfer distribution factor of the system.  `KeyedArray` where the axis keys are
+    `branch names x bus names`
+    """
+    ptdf::Union{KeyedArray{Float64, 2}, Missing}
+
+    # Generator related time series
+    "Generator related time series data"
+    generator_time_series::GeneratorTimeSeries
+    "Generator status time series needed for the day-ahead formulation"
+    generator_status::GeneratorStatusDA
+
+    # Load time series
+    "Load time series data. `KeyedArray` where the axis keys are `load ids x datetimes`"
+    load_services::LoadServices
+
+    "Energy offers time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
+    energy_offers::EnergyBids
+    "Energy demands time series data. `KeyedArray` where the axis keys are `bid ids x datetimes`"
+    energy_demands::EnergyBids
 end
 
 """
